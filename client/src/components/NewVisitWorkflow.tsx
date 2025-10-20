@@ -127,13 +127,14 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
   });
 
   const handleComplete = () => {
-    if (!selectedProductId) return;
+    console.log('handleComplete called', { selectedProductId, formData });
+    
+    if (!selectedProductId) {
+      console.log('No product selected, returning');
+      return;
+    }
 
-    const priceVariation = formData.currentPrice && formData.suggestedPrice
-      ? ((parseFloat(formData.currentPrice) - parseFloat(formData.suggestedPrice)) / parseFloat(formData.suggestedPrice) * 100).toFixed(1)
-      : '0';
-
-    saveMutation.mutate({
+    const evaluationData = {
       storeId: store.id,
       productId: selectedProductId,
       status: 'completed',
@@ -152,7 +153,10 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
       pricePhotoUrl: formData.pricePhotoUrl,
       hasIncidents: formData.incidentTypes.length > 0,
       completedAt: new Date().toISOString()
-    });
+    };
+
+    console.log('Submitting evaluation:', evaluationData);
+    saveMutation.mutate(evaluationData);
   };
 
   const canProceed = () => {
@@ -346,10 +350,10 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="areaPhoto">Foto del área *</Label>
+              <Label htmlFor="areaPhoto">Foto del área</Label>
               <div className="border-2 border-dashed rounded-md p-6 text-center hover-elevate cursor-pointer">
                 <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">URL de la foto o arrastrar archivo</p>
+                <p className="text-sm text-muted-foreground">URL de la foto o arrastrar archivo (opcional)</p>
                 <Input
                   id="areaPhoto"
                   type="text"
