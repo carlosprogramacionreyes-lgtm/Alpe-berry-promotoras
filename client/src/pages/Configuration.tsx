@@ -241,6 +241,7 @@ export default function Configuration() {
   const [editingStore, setEditingStore] = useState<StoreType | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingField, setEditingField] = useState<EvaluationField | null>(null);
+  const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
 
   // Evaluation field form
   const evaluationFieldForm = useForm<z.infer<typeof evaluationFieldFormSchema>>({
@@ -487,6 +488,7 @@ export default function Configuration() {
       queryClient.invalidateQueries({ queryKey: ['/api/evaluation-fields'] });
       evaluationFieldForm.reset();
       setEditingField(null);
+      setIsFieldDialogOpen(false);
       toast({ title: "Campo de evaluación creado exitosamente" });
     },
     onError: (error: any) => {
@@ -501,6 +503,7 @@ export default function Configuration() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/evaluation-fields'] });
       setEditingField(null);
+      setIsFieldDialogOpen(false);
       toast({ title: "Campo de evaluación actualizado exitosamente" });
     },
     onError: (error: any) => {
@@ -1823,6 +1826,7 @@ export default function Configuration() {
                                 order: stepFields.length,
                                 active: true,
                               });
+                              setIsFieldDialogOpen(true);
                             }}
                             data-testid={`button-add-field-${step}`}
                           >
@@ -1879,7 +1883,10 @@ export default function Configuration() {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => setEditingField(field)}
+                                    onClick={() => {
+                                      setEditingField(field);
+                                      setIsFieldDialogOpen(true);
+                                    }}
                                     data-testid={`button-edit-field-${field.technicalName}`}
                                   >
                                     <Edit className="w-4 h-4" />
@@ -1935,7 +1942,8 @@ export default function Configuration() {
           )}
 
           {/* Field Edit/Create Dialog */}
-          <Dialog open={editingField !== null || evaluationFieldForm.formState.isDirty} onOpenChange={(open) => {
+          <Dialog open={isFieldDialogOpen} onOpenChange={(open) => {
+            setIsFieldDialogOpen(open);
             if (!open) {
               setEditingField(null);
               evaluationFieldForm.reset();
@@ -2122,6 +2130,7 @@ export default function Configuration() {
                       onClick={() => {
                         setEditingField(null);
                         evaluationFieldForm.reset();
+                        setIsFieldDialogOpen(false);
                       }}
                       data-testid="button-cancel-field"
                     >
