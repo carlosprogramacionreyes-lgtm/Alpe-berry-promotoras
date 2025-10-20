@@ -1,0 +1,144 @@
+I’m attaching a full set of screenshots, showing how the “New Visit” workflow should look and function.
+
+The goal is for our system’s “New Visit” flow to look and behave very similarly to these examples — keeping the same step order, layout style, and usability.
+
+🎯 Design and Flow Requirements
+🧭 Step 0 – Location Validation
+
+When the user clicks “New Visit”, they should see a clean two-step selector:
+1️⃣ Select Chain – a simple list of cards showing all available chains (like in the first screenshot).
+2️⃣ Select Store – once a chain is selected, only stores with valid coordinates should appear.
+
+Each store card must display:
+
+Store name, city, and chain.
+
+Distance (e.g., “640 m away”).
+
+A color badge showing status:
+
+🟢 In range
+
+🔴 Out of range
+
+🟡 No coordinates
+
+A green confirmation banner when location is successfully obtained.
+
+A “Continue (Test Mode)” button available only for administrators, following the same visual style from the images.
+
+🍓 Step 1 – Product Selection
+
+Display all active products in a grid of visual cards, just like in Lovable.
+Each card should include:
+
+Product icon and color.
+
+Product name.
+
+Small label “Berry Fresh.”
+
+Button “Start Evaluation.”
+
+Products are loaded directly from Settings → Products.
+
+📦 Step 2 – Availability
+
+Keep the clean form layout with the top progress bar.
+
+Fields to include:
+
+Available quantity
+
+Location
+
+Display condition
+
+Area photo
+
+Follow the same formatting as in the screenshots: white background, purple accent buttons, and clear spacing between fields.
+
+🌿 Step 3 – Quality
+
+Include a slider bar for “Freshness (1–5)” with a numeric value displayed on the right.
+
+Fields:
+
+Appearance
+
+Packaging condition
+
+Expiration date (with automatic yellow warning if near expiration)
+
+Temperature
+
+Product photos (up to 3)
+
+Show yellow alert text:
+
+⚠️ “Product close to expiration.”
+
+💰 Step 4 – Prices and Promotions
+
+Maintain the same spacing and layout style.
+
+Fields:
+
+Current price
+
+Suggested/competitor price
+
+Automatic price variation (%)
+
+Active promotions (multi-select options)
+
+Promotion description
+
+Checkbox “POP Material Present”
+
+If checked → show additional field “POP Material Photo”
+
+Price tag photo
+
+⚠️ Step 5 – Incidents
+
+Fields:
+
+Incident type (multi-select):
+Expired product, Damaged packaging, Missing promotion, Aggressive competition, Wrong price, Out of stock, Other.
+
+Severity level (only if at least one incident is selected).
+
+Required action.
+
+Evidence photos (up to 4).
+
+Detected competition (optional free text).
+
+✅ Final Behavior
+
+Each step dynamically loads its fields based on the configuration from Settings → Evaluations.
+
+Keep purple as the main accent color with a clean, minimal layout.
+
+Show a real-time progress bar at the top labeled “Step X of 5.”
+
+After completion, display the success message:
+
+✅ “Evaluation completed and saved successfully.”
+
+💡 Visual Guidelines
+
+Please use the attached screenshots as reference for:
+
+Layout spacing and typography.
+
+Step transitions and progress visuals.
+
+Consistent use of purple tones and light backgrounds.
+
+Responsive design for mobile and tablet.
+
+🎯 Final Objective
+
+The “New Visit” flow should feel just as smooth, modern, and user-friendly as the Lovable version, following the same step sequence and visual style shown in the screenshots.
