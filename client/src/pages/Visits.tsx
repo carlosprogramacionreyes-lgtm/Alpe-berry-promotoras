@@ -123,7 +123,7 @@ export default function Visits() {
   };
 
   const handleStartNewVisit = () => {
-    setViewMode('chain-selector');
+    setViewMode('store-selector');
     setSelectedChainId(null);
     setSelectedStoreId(null);
     setUserLocation(null);

@@ -159,6 +159,9 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
     saveMutation.mutate(evaluationData);
   };
 
+  const hasNoIncidents = formData.incidentTypes.includes('✅ No incidents / Everything OK');
+  const hasRealIncidents = formData.incidentTypes.some(i => i !== '✅ No incidents / Everything OK');
+
   const canProceed = () => {
     switch (currentStep) {
       case 'product-selection':
@@ -170,7 +173,12 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
       case 'prices':
         return !!formData.currentPrice;
       case 'incidents':
-        return formData.incidentTypes.length === 0 || (!!formData.severity && !!formData.actionRequired);
+        // If "No incidents" is selected, always allow completion
+        if (hasNoIncidents) return true;
+        // If other incidents are selected, require severity and action
+        if (hasRealIncidents) return !!formData.severity && !!formData.actionRequired;
+        // If nothing selected, allow completion (incidents are optional)
+        return true;
       default:
         return true;
     }
@@ -326,6 +334,8 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
                   <SelectItem value="Exhibidor principal">Exhibidor principal</SelectItem>
                   <SelectItem value="Área refrigerada">Área refrigerada</SelectItem>
                   <SelectItem value="Anaquel secundario">Anaquel secundario</SelectItem>
+                  <SelectItem value="Bodega">Bodega</SelectItem>
+                  <SelectItem value="Góndola">Góndola</SelectItem>
                   <SelectItem value="Otro">Otro</SelectItem>
                 </SelectContent>
               </Select>
@@ -584,36 +594,8 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="popMaterial"
-                checked={formData.popMaterialPresent}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, popMaterialPresent: !!checked })
-                }
-                data-testid="checkbox-pop-material"
-              />
-              <Label htmlFor="popMaterial" className="cursor-pointer">
-                Material POP presente
-              </Label>
-            </div>
-
-            {formData.popMaterialPresent && (
-              <div className="space-y-2 pl-6">
-                <Label htmlFor="popPhoto">Foto material POP</Label>
-                <Input
-                  id="popPhoto"
-                  type="text"
-                  placeholder="URL de la foto"
-                  value={formData.popMaterialPhotoUrl}
-                  onChange={(e) => setFormData({ ...formData, popMaterialPhotoUrl: e.target.value })}
-                  data-testid="input-pop-photo"
-                />
-              </div>
-            )}
-
             <div className="space-y-2">
-              <Label htmlFor="pricePhoto">Foto de etiqueta de precio</Label>
+              <Label htmlFor="pricePhoto">Foto de etiqueta de precio (opcional)</Label>
               <div className="border-2 border-dashed rounded-md p-6 text-center hover-elevate cursor-pointer">
                 <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                 <Input
@@ -651,7 +633,8 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
                   'Competencia agresiva',
                   'Precio incorrecto',
                   'Sin stock',
-                  'Otro'
+                  'Otro',
+                  '✅ No incidents / Everything OK'
                 ].map((incident) => (
                   <div key={incident} className="flex items-center gap-2">
                     <Checkbox
@@ -680,7 +663,7 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
               </div>
             </div>
 
-            {formData.incidentTypes.length > 0 && (
+            {hasRealIncidents && !hasNoIncidents && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="severity">Nivel de severidad *</Label>
