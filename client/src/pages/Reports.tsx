@@ -20,14 +20,15 @@ export default function Reports() {
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const [selectedProductId, setSelectedProductId] = useState<string>('all');
 
-  const { data: currentUser } = useQuery<User>({ queryKey: ['/api/user'] });
+  const { data: authData } = useQuery<{ user: User }>({ queryKey: ['/api/auth/me'] });
+  const currentUser = authData?.user;
   const { data: chains = [] } = useQuery<Chain[]>({ queryKey: ['/api/chains'] });
   const { data: allZones = [] } = useQuery<Zone[]>({ queryKey: ['/api/zones'] });
   const { data: allStores = [] } = useQuery<Store[]>({ queryKey: ['/api/stores'] });
   const { data: products = [] } = useQuery<Product[]>({ queryKey: ['/api/products'] });
   const { data: users = [] } = useQuery<User[]>({ queryKey: ['/api/users'] });
 
-  const isPromoter = currentUser?.role === 'promoter';
+  const isPromoter = currentUser?.role === 'promoter' || currentUser?.role === 'promotor';
 
   const filteredZones = selectedChainId === 'all' 
     ? allZones 
@@ -227,7 +228,7 @@ export default function Reports() {
                           {currentUser.name} ({currentUser.username})
                         </SelectItem>
                       )
-                    : users.filter(u => u.role === 'promoter').map((user) => (
+                    : users.filter(u => u.role === 'promoter' || u.role === 'promotor').map((user) => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.name} ({user.username})
                         </SelectItem>
