@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { 
   insertUserSchema, insertChainSchema, insertZoneSchema, 
   insertStoreSchema, insertProductSchema, insertStoreAssignmentSchema,
-  insertEvaluationSchema, insertIncidentSchema 
+  insertEvaluationSchema, insertIncidentSchema, insertEvaluationFieldSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -612,6 +612,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error generating backup:', error);
       res.status(500).json({ message: error.message || "Error al generar respaldo" });
+    }
+  });
+
+  // Evaluation fields routes
+  app.get("/api/evaluation-fields", requireAuth, async (req, res) => {
+    try {
+      const fields = await storage.getAllEvaluationFields();
+      res.json(fields);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener campos de evaluación" });
+    }
+  });
+
+  app.post("/api/evaluation-fields", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const fieldData = insertEvaluationFieldSchema.parse(req.body);
+      
+      const existingField = await storage.findEvaluationFieldByTechnicalName(fieldData.technicalName);
+      if (existingField) {
+        return res.status(400).json({ message: "Ya existe un campo con ese nombre técnico" });
+      }
+      
+      const field = await storage.createEvaluationField(fieldData);
+      res.json(field);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear campo" });
+    }
+  });
+
+  app.put("/api/evaluation-fields/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fieldData = insertEvaluationFieldSchema.partial().parse(req.body);
+      
+      if (fieldData.technicalName) {
+        const existingField = await storage.findEvaluationFieldByTechnicalName(fieldData.technicalName);
+        if (existingField && existingField.id !== id) {
+          return res.status(400).json({ message: "Ya existe un campo con ese nombre técnico" });
+        }
+      }
+      
+      const field = await storage.updateEvaluationField(id, fieldData);
+      res.json(field);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar campo" });
+    }
+  });
+
+  app.delete("/api/evaluation-fields/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEvaluationField(id);
+      res.json({ message: "Campo eliminado correctamente" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al eliminar campo" });
     }
   });
 

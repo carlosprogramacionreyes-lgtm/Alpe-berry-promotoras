@@ -205,3 +205,24 @@ export const insertPromoterVisitSchema = createInsertSchema(promoterVisits).omit
 
 export type InsertPromoterVisit = z.infer<typeof insertPromoterVisitSchema>;
 export type PromoterVisit = typeof promoterVisits.$inferSelect;
+
+export const evaluationFields = pgTable("evaluation_fields", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  step: text("step").notNull(), // 'availability', 'quality', 'prices', 'incidents', 'custom'
+  technicalName: text("technical_name").notNull().unique(),
+  label: text("label").notNull(),
+  fieldType: text("field_type").notNull(), // 'text', 'number', 'select', 'checkbox', 'date', 'textarea', 'slider'
+  options: text("options"), // JSON string for select options
+  required: boolean("required").notNull().default(false),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertEvaluationFieldSchema = createInsertSchema(evaluationFields).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertEvaluationField = z.infer<typeof insertEvaluationFieldSchema>;
+export type EvaluationField = typeof evaluationFields.$inferSelect;

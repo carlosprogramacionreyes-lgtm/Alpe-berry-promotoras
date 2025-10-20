@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { 
-  users, chains, zones, stores, products, storeAssignments, evaluations, incidents, backupLogs,
+  users, chains, zones, stores, products, storeAssignments, evaluations, incidents, backupLogs, evaluationFields,
   type User, type InsertUser,
   type Chain, type InsertChain,
   type Zone, type InsertZone,
@@ -10,6 +10,7 @@ import {
   type Evaluation, type InsertEvaluation,
   type Incident, type InsertIncident,
   type BackupLog, type InsertBackupLog,
+  type EvaluationField, type InsertEvaluationField,
 } from "@shared/schema";
 import { eq, and, desc, sql, ilike } from "drizzle-orm";
 
@@ -83,6 +84,15 @@ export interface IStorage {
   createIncident(incident: InsertIncident): Promise<Incident>;
   updateIncident(id: string, incident: Partial<InsertIncident>): Promise<Incident | undefined>;
   deleteIncident(id: string): Promise<boolean>;
+
+  // Evaluation Fields
+  getEvaluationField(id: string): Promise<EvaluationField | undefined>;
+  findEvaluationFieldByTechnicalName(technicalName: string): Promise<EvaluationField | undefined>;
+  createEvaluationField(field: InsertEvaluationField): Promise<EvaluationField>;
+  updateEvaluationField(id: string, field: Partial<InsertEvaluationField>): Promise<EvaluationField | undefined>;
+  deleteEvaluationField(id: string): Promise<boolean>;
+  getAllEvaluationFields(): Promise<EvaluationField[]>;
+  getEvaluationFieldsByStep(step: string): Promise<EvaluationField[]>;
 
   // Database backups
   getAllBackupLogs(): Promise<any[]>;
@@ -424,6 +434,40 @@ export class DbStorage implements IStorage {
   async deleteIncident(id: string): Promise<boolean> {
     const result = await db.delete(incidents).where(eq(incidents.id, id));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Evaluation Fields
+  async getEvaluationField(id: string): Promise<EvaluationField | undefined> {
+    const result = await db.select().from(evaluationFields).where(eq(evaluationFields.id, id)).limit(1);
+    return result[0];
+  }
+
+  async findEvaluationFieldByTechnicalName(technicalName: string): Promise<EvaluationField | undefined> {
+    const result = await db.select().from(evaluationFields).where(eq(evaluationFields.technicalName, technicalName)).limit(1);
+    return result[0];
+  }
+
+  async createEvaluationField(field: InsertEvaluationField): Promise<EvaluationField> {
+    const result = await db.insert(evaluationFields).values(field).returning();
+    return result[0];
+  }
+
+  async updateEvaluationField(id: string, field: Partial<InsertEvaluationField>): Promise<EvaluationField | undefined> {
+    const result = await db.update(evaluationFields).set(field).where(eq(evaluationFields.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEvaluationField(id: string): Promise<boolean> {
+    const result = await db.delete(evaluationFields).where(eq(evaluationFields.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getAllEvaluationFields(): Promise<EvaluationField[]> {
+    return await db.select().from(evaluationFields).orderBy(evaluationFields.step, evaluationFields.order);
+  }
+
+  async getEvaluationFieldsByStep(step: string): Promise<EvaluationField[]> {
+    return await db.select().from(evaluationFields).where(eq(evaluationFields.step, step)).orderBy(evaluationFields.order);
   }
 
   // Database backups
