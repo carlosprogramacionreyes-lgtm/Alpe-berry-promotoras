@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import MetricCard from '@/components/MetricCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +47,12 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  useEffect(() => {
+    if (!userLoading && !user) {
+      setLocation('/login');
+    }
+  }, [user, userLoading, setLocation]);
+
   const recentEvaluations = evaluations.slice(0, 5);
 
   if (userLoading) {
@@ -57,7 +64,6 @@ export default function Dashboard() {
   }
 
   if (!user) {
-    setLocation('/login');
     return null;
   }
 
