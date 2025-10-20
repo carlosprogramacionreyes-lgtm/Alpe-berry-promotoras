@@ -5,8 +5,8 @@ import { setupAuth, requireAuth, requireRole, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { 
   insertUserSchema, insertChainSchema, insertZoneSchema, 
-  insertStoreSchema, insertProductSchema, insertEvaluationSchema, 
-  insertIncidentSchema 
+  insertStoreSchema, insertProductSchema, insertStoreAssignmentSchema,
+  insertEvaluationSchema, insertIncidentSchema 
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -293,6 +293,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Producto eliminado" });
     } catch (error) {
       res.status(500).json({ message: "Error al eliminar producto" });
+    }
+  });
+
+  // Store Assignment routes
+  app.get("/api/store-assignments", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      const { userId, storeId } = req.query;
+      
+      if (userId) {
+        const assignments = await storage.getStoreAssignmentsByUser(userId as string);
+        return res.json(assignments);
+      }
+      
+      if (storeId) {
+        const assignments = await storage.getStoreAssignmentsByStore(storeId as string);
+        return res.json(assignments);
+      }
+      
+      res.status(400).json({ message: "Se requiere userId o storeId" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener asignaciones" });
+    }
+  });
+
+  app.post("/api/store-assignments", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const assignmentData = insertStoreAssignmentSchema.parse(req.body);
+      const assignment = await storage.assignUserToStore(assignmentData);
+      res.json(assignment);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear asignación" });
+    }
+  });
+
+  app.delete("/api/store-assignments/:userId/:storeId", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { userId, storeId } = req.params;
+      const deleted = await storage.removeStoreAssignment(userId, storeId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Asignación no encontrada" });
+      }
+      res.json({ message: "Asignación eliminada" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar asignación" });
     }
   });
 

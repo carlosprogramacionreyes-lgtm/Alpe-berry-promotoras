@@ -56,6 +56,8 @@ export interface IStorage {
 
   // Store Assignments
   assignUserToStore(assignment: InsertStoreAssignment): Promise<StoreAssignment>;
+  getStoreAssignmentsByUser(userId: string): Promise<any[]>;
+  getStoreAssignmentsByStore(storeId: string): Promise<any[]>;
   getUserStores(userId: string): Promise<Store[]>;
   getStoreUsers(storeId: string): Promise<User[]>;
   removeStoreAssignment(userId: string, storeId: string): Promise<boolean>;
@@ -233,6 +235,30 @@ export class DbStorage implements IStorage {
   async assignUserToStore(assignment: InsertStoreAssignment): Promise<StoreAssignment> {
     const result = await db.insert(storeAssignments).values(assignment).returning();
     return result[0];
+  }
+
+  async getStoreAssignmentsByUser(userId: string): Promise<any[]> {
+    const result = await db
+      .select({
+        assignment: storeAssignments,
+        store: stores,
+      })
+      .from(storeAssignments)
+      .innerJoin(stores, eq(storeAssignments.storeId, stores.id))
+      .where(eq(storeAssignments.userId, userId));
+    return result;
+  }
+
+  async getStoreAssignmentsByStore(storeId: string): Promise<any[]> {
+    const result = await db
+      .select({
+        assignment: storeAssignments,
+        user: users,
+      })
+      .from(storeAssignments)
+      .innerJoin(users, eq(storeAssignments.userId, users.id))
+      .where(eq(storeAssignments.storeId, storeId));
+    return result;
   }
 
   async getUserStores(userId: string): Promise<Store[]> {
