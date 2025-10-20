@@ -220,12 +220,19 @@ export default function Reports() {
                   <SelectValue placeholder="Seleccionar usuario" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los usuarios</SelectItem>
-                  {users.filter(u => u.role === 'promoter').map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name} ({user.username})
-                    </SelectItem>
-                  ))}
+                  {!isPromoter && <SelectItem value="all">Todos los usuarios</SelectItem>}
+                  {isPromoter 
+                    ? currentUser && (
+                        <SelectItem key={currentUser.id} value={currentUser.id}>
+                          {currentUser.name} ({currentUser.username})
+                        </SelectItem>
+                      )
+                    : users.filter(u => u.role === 'promoter').map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name} ({user.username})
+                        </SelectItem>
+                      ))
+                  }
                 </SelectContent>
               </Select>
             </div>

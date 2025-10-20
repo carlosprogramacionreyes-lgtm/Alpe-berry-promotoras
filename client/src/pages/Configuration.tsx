@@ -118,13 +118,13 @@ export default function Configuration() {
   // Backup logs query
   const backupLogsQuery = useQuery<any[]>({ 
     queryKey: ['/api/backup-logs'],
-    enabled: currentUser?.role === 'admin' || currentUser?.role === 'supervisor',
+    enabled: currentUser?.role === 'admin',
   });
 
   // Database tables query
   const dbTablesQuery = useQuery<any[]>({ 
     queryKey: ['/api/database/tables'],
-    enabled: currentUser?.role === 'admin' || currentUser?.role === 'supervisor',
+    enabled: currentUser?.role === 'admin',
   });
 
   // Promoters query (filtered users with promoter role)
@@ -706,7 +706,7 @@ export default function Configuration() {
           <TabsTrigger value="fields" data-testid="tab-fields"><ListChecks className="w-4 h-4 mr-2" />Evaluaciones</TabsTrigger>
           <TabsTrigger value="permissions" data-testid="tab-permissions"><Shield className="w-4 h-4 mr-2" />Permisos</TabsTrigger>
           <TabsTrigger value="notifications" data-testid="tab-notifications"><Bell className="w-4 h-4 mr-2" />Notificaciones</TabsTrigger>
-          {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor') && (
+          {currentUser?.role === 'admin' && (
             <TabsTrigger value="database" data-testid="tab-database"><Database className="w-4 h-4 mr-2" />Data Base</TabsTrigger>
           )}
         </TabsList>
