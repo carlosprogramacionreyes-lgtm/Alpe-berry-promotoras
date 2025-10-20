@@ -6,6 +6,43 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
 
 ## Recent Changes
 
+### October 2025 - Major System Enhancements (Three-Part Update)
+
+#### 1. Reports and Analytics Module Update
+- **Enhanced Filters:** Expanded from 3 to 6 filters with hierarchical dependencies
+  - Date Range (first position, editable input field)
+  - Chain (dropdown, updates zones dynamically)
+  - Zone (dropdown, depends on selected chain)
+  - Store (dropdown, depends on selected zone/chain)
+  - User (dropdown, locked for promoters to their own user)
+  - Product (dropdown, standard selection)
+- **Layout:** Redesigned to 3-row grid layout (Date Range | Chain | Zone // Store | User | Product // Apply | Clear buttons)
+- **Filter Dependencies:** Chain selection updates available zones → Zone selection updates available stores → Dynamic filtering without page reload
+- **User Controls:** "Aplicar Filtros" (purple primary button) and "Limpiar Filtros" (gray outline button)
+- **Role-Aware Behavior:** Promoters see their own user locked in the User filter; Analysts/Supervisors/Admins can select any promoter
+
+#### 2. Database Tab Enhancement
+- **New Section:** "Tablas de la Base de Datos" card displaying all PostgreSQL public schema tables
+- **Table Information:** Shows table name (monospace font), schema, and owner for each table
+- **Search Functionality:** Real-time search/filter by table name with case-insensitive matching
+- **Data Source:** Fetches from pg_catalog.pg_tables via new GET /api/database/tables endpoint
+- **UI Features:**
+  - Alternating row colors for readability
+  - Empty state when no tables found
+  - "No se encontraron tablas" message when search returns no results
+  - Clean table layout with emoji icon (🗂️) in header
+- **Access Control:** Visible only for admin and supervisor roles
+
+#### 3. Role-Based Navigation and Permissions
+- **Sidebar Navigation:** Dynamic menu items based on user role
+  - **Promoter:** Home, Visits only
+  - **Analyst:** Home, Visits, Reports
+  - **Supervisor:** Home, Visits, Reports, Configuration
+  - **Administrator:** Home, Visits, Reports, Configuration
+- **Implementation:** Menu items filtered by roles array in AppSidebar component
+- **Progressive Access:** Clear hierarchy (Promoter → Analyst → Supervisor → Administrator) with each level adding more capabilities
+- **Configuration Access:** Data Base tab within Configuration remains exclusive to admin/supervisor roles
+
 ### October 2025 - Multi-Store Assignment Feature
 - **Feature:** Bulk store assignment for promoters with checkbox-based selection
 - **Implementation:** Replaced single-store Select dropdown with scrollable checkbox list
