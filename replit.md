@@ -20,17 +20,20 @@ Preferred communication style: Simple, everyday language.
 - Tailwind CSS with shadcn/ui component library for styling
 
 **Design System**
-- Utility-focused, mobile-first approach optimized for field data collection
+- Modern, utility-focused, mobile-first approach optimized for field data collection
 - Role-adaptive interface that adjusts based on user permissions (Admin, Supervisor, Analyst, Promoter)
 - Custom theme system supporting light/dark modes with HSL-based color tokens
 - Compact spacing and layout to maximize visible content on mobile devices
-- Purple-blue-teal gradient theme:
-  - Primary purple: hsl(265, 80%, 60%)
-  - Gradient purple: hsl(270, 70%, 60%)
-  - Gradient blue: hsl(240, 70%, 55%)
-  - Gradient teal: hsl(180, 60%, 50%)
-- Gradient backgrounds on login page and key metric cards
-- Gradient text effects on titles and headings
+- Modern purple-blue-green gradient theme:
+  - Primary purple: hsl(265, 85%, 57%)
+  - Success green: hsl(142, 76%, 45%)
+  - Info blue: hsl(217, 91%, 60%)
+  - Warning orange: hsl(25, 95%, 53%)
+- Purple gradient sidebar with white text
+- Multi-color gradient welcome banner (purple → blue → green)
+- Gradient action cards (purple for "Nueva Visita", green for "Mis Visitas")
+- Colored icon backgrounds in metric cards for visual hierarchy
+- Modern shadows, rounded corners (xl), and hover effects throughout
 
 **Component Organization**
 - Reusable UI components in `/client/src/components/ui/` (shadcn/ui primitives)

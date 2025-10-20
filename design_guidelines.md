@@ -12,8 +12,10 @@
 ## Color Palette
 
 ### Light Mode
-- **Primary Purple**: 265 80% 60% - Buttons, links, highlights, active states
-- **Success Green**: 142 71% 45% - Completed evaluations, positive metrics
+- **Primary Purple**: 265 85% 57% - Buttons, links, highlights, active states
+- **Success Green**: 142 76% 45% - Completed evaluations, positive metrics  
+- **Info Blue**: 217 91% 60% - Information, secondary actions
+- **Warning Orange**: 25 95% 53% - Warnings, pending items
 - **Destructive Red**: 0 84% 60% - Alerts, errors, critical actions
 - **Background**: 0 0% 100% - Main background
 - **Card**: 0 0% 98% - Cards and containers
@@ -22,22 +24,33 @@
 - **Text Secondary**: 215 16% 47% - Secondary text, labels
 - **Muted**: 210 40% 96% - Disabled elements
 
-### Dark Mode (Auto-inverted)
+### Dark Mode
 - **Background**: 222 47% 11% - Dark base
 - **Card**: 217 33% 17% - Slightly lighter than background
 - **Border**: 215 25% 27% - Subtle borders
 - **Text Primary**: 0 0% 98% - Main text
 - **Text Secondary**: 215 20% 65% - Secondary text
+- **Sidebar**: 265 85% 27% - Purple sidebar background
 
 ### Accent Colors & Gradients
-- **Purple-Blue-Teal Gradient**: Applied to login background, hero cards, key metric displays
-  - Purple: 270 70% 60% (left)
-  - Blue: 240 70% 55% (middle)
-  - Teal: 180 60% 50% (right)
-- **Primary Gradient**: Used for titles and special highlights
-  - From: 270 70% 60%
-  - Via: 265 80% 60%
-  - To: 240 70% 55%
+- **Multi-Color Gradient**: Applied to login background, welcome banner
+  - Purple: 265 85% 57% (left)
+  - Blue: 217 91% 60% (middle)
+  - Green: 142 76% 45% (right)
+- **Purple Gradient**: Used for primary action cards, sidebar logo
+  - From: 265 85% 67% (light)
+  - To: 265 85% 57% (dark)
+- **Green Gradient**: Used for secondary action cards
+  - From: 142 76% 45% (light)
+  - To: 142 76% 35% (dark)
+
+### Icon Colors (Semantic)
+- **Location/Visits**: Purple (265 85% 57%)
+- **Users/Promoters**: Green (142 76% 45%)
+- **Stores**: Blue (217 91% 60%)
+- **Calendar/Time**: Orange (25 95% 53%)
+- **Alerts/Incidents**: Red (0 84% 60%)
+- **Quality/Analytics**: Purple (265 85% 57%)
 
 ## Typography
 - **Font Family**: System fonts via Tailwind defaults (`font-sans`)
