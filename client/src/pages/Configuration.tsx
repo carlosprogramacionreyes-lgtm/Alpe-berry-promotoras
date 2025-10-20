@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -65,7 +66,7 @@ const productFormSchema = z.object({
 // Assignment form schema
 const assignmentFormSchema = z.object({
   userId: z.string().min(1, "Selecciona un promotor"),
-  storeId: z.string().min(1, "Selecciona una tienda"),
+  storeIds: z.array(z.string()).min(1, "Selecciona al menos una tienda"),
 });
 
 export default function Configuration() {
@@ -171,12 +172,14 @@ export default function Configuration() {
     resolver: zodResolver(assignmentFormSchema),
     defaultValues: {
       userId: '',
-      storeId: '',
+      storeIds: [],
     },
   });
 
   // Dialog state
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
 
   // Edit state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -508,12 +511,79 @@ export default function Configuration() {
   });
 
   // Assignment handlers
-  const onAssignmentSubmit = (data: z.infer<typeof assignmentFormSchema>) => {
-    createAssignmentMutation.mutate(data);
+  const onAssignmentSubmit = async (data: z.infer<typeof assignmentFormSchema>) => {
+    const { userId, storeIds } = data;
+    
+    const existingAssignments = assignmentsQuery.data?.filter(
+      (a: any) => a.assignment.userId === userId
+    ) || [];
+    const existingStoreIds = existingAssignments.map((a: any) => a.assignment.storeId);
+    
+    const storesToAdd = storeIds.filter(id => !existingStoreIds.includes(id));
+    const storesToRemove = existingStoreIds.filter(id => !storeIds.includes(id));
+    
+    try {
+      for (const storeId of storesToAdd) {
+        await apiRequest('POST', '/api/store-assignments', { userId, storeId });
+      }
+      
+      for (const storeId of storesToRemove) {
+        await apiRequest('DELETE', `/api/store-assignments/${userId}/${storeId}`);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/store-assignments'] });
+      assignmentForm.reset();
+      setSelectedUserId("");
+      setSelectedStoreIds([]);
+      setIsAssignmentDialogOpen(false);
+      toast({ title: "Asignaciones actualizadas exitosamente" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Error al actualizar asignaciones", variant: "destructive" });
+    }
   };
 
   const handleRemoveAssignment = (userId: string, storeId: string) => {
     deleteAssignmentMutation.mutate({ userId, storeId });
+  };
+
+  const handleUserSelection = (userId: string) => {
+    setSelectedUserId(userId);
+    assignmentForm.setValue("userId", userId);
+    
+    const userAssignments = assignmentsQuery.data?.filter(
+      (a: any) => a.assignment.userId === userId
+    ) || [];
+    const existingStoreIds = userAssignments.map((a: any) => a.assignment.storeId);
+    setSelectedStoreIds(existingStoreIds);
+    assignmentForm.setValue("storeIds", existingStoreIds);
+  };
+
+  const handleStoreToggle = (storeId: string) => {
+    const newSelection = selectedStoreIds.includes(storeId)
+      ? selectedStoreIds.filter(id => id !== storeId)
+      : [...selectedStoreIds, storeId];
+    setSelectedStoreIds(newSelection);
+    assignmentForm.setValue("storeIds", newSelection);
+  };
+
+  const handleSelectAllStores = () => {
+    const allStoreIds = storesQuery.data?.map(s => s.id) || [];
+    setSelectedStoreIds(allStoreIds);
+    assignmentForm.setValue("storeIds", allStoreIds);
+  };
+
+  const handleClearAllStores = () => {
+    setSelectedStoreIds([]);
+    assignmentForm.setValue("storeIds", []);
+  };
+
+  const handleAssignmentDialogClose = (open: boolean) => {
+    setIsAssignmentDialogOpen(open);
+    if (!open) {
+      assignmentForm.reset();
+      setSelectedUserId("");
+      setSelectedStoreIds([]);
+    }
   };
 
   // Get chain name by ID
@@ -1314,14 +1384,17 @@ export default function Configuration() {
                 <CardTitle>Asignaciones de Tiendas</CardTitle>
                 <p className="text-sm text-muted-foreground">Asignar promotores a tiendas</p>
               </div>
-              <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+              <Dialog open={isAssignmentDialogOpen} onOpenChange={handleAssignmentDialogClose}>
                 <Button size="sm" onClick={() => setIsAssignmentDialogOpen(true)} data-testid="button-add-assignment">
                   <Plus className="h-4 w-4 mr-1" />
                   Asignar
                 </Button>
-                <DialogContent>
+                <DialogContent className="max-w-2xl max-h-[80vh]">
                   <DialogHeader>
-                    <DialogTitle>Nueva Asignación</DialogTitle>
+                    <DialogTitle>Asignación de Tiendas</DialogTitle>
+                    <DialogDescription>
+                      Selecciona un promotor y asigna múltiples tiendas
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...assignmentForm}>
                     <form onSubmit={assignmentForm.handleSubmit(onAssignmentSubmit)} className="space-y-4">
@@ -1331,7 +1404,10 @@ export default function Configuration() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Promotor</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select 
+                              onValueChange={handleUserSelection} 
+                              value={selectedUserId}
+                            >
                               <FormControl>
                                 <SelectTrigger data-testid="select-assignment-user">
                                   <SelectValue placeholder="Seleccionar promotor" />
@@ -1349,45 +1425,91 @@ export default function Configuration() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={assignmentForm.control}
-                        name="storeId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tienda</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-assignment-store">
-                                  <SelectValue placeholder="Seleccionar tienda" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {storesQuery.data?.map((store) => (
-                                  <SelectItem key={store.id} value={store.id.toString()}>
-                                    {store.name} - {store.city}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex justify-end gap-2">
+                      
+                      {selectedUserId && (
+                        <FormField
+                          control={assignmentForm.control}
+                          name="storeIds"
+                          render={() => (
+                            <FormItem>
+                              <div className="flex items-center justify-between mb-2">
+                                <FormLabel>
+                                  Tiendas ({selectedStoreIds.length} seleccionadas)
+                                </FormLabel>
+                                <div className="flex gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleSelectAllStores}
+                                    data-testid="button-select-all-stores"
+                                  >
+                                    Seleccionar todas
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleClearAllStores}
+                                    data-testid="button-clear-all-stores"
+                                  >
+                                    Limpiar
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="border rounded-md p-3 max-h-[300px] overflow-y-auto">
+                                {storesQuery.data && storesQuery.data.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {storesQuery.data.map((store) => (
+                                      <div
+                                        key={store.id}
+                                        className="flex items-center space-x-3 p-2 hover-elevate rounded"
+                                        data-testid={`checkbox-store-${store.id}`}
+                                      >
+                                        <Checkbox
+                                          checked={selectedStoreIds.includes(store.id)}
+                                          onCheckedChange={() => handleStoreToggle(store.id)}
+                                          id={`store-${store.id}`}
+                                        />
+                                        <label
+                                          htmlFor={`store-${store.id}`}
+                                          className="flex-1 text-sm cursor-pointer"
+                                        >
+                                          <div className="font-medium">{store.name}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {store.city}
+                                          </div>
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-4">
+                                    No hay tiendas disponibles
+                                  </p>
+                                )}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-4">
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsAssignmentDialogOpen(false)}
+                          onClick={() => handleAssignmentDialogClose(false)}
                           data-testid="button-cancel-assignment"
                         >
                           Cancelar
                         </Button>
                         <Button
                           type="submit"
-                          disabled={createAssignmentMutation.isPending}
+                          disabled={!selectedUserId || selectedStoreIds.length === 0}
                           data-testid="button-submit-assignment"
                         >
-                          {createAssignmentMutation.isPending ? "Asignando..." : "Asignar"}
+                          Guardar Asignaciones
                         </Button>
                       </div>
                     </form>
