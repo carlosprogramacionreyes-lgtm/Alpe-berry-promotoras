@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash } from 'lucide-react';
+import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X } from 'lucide-react';
 import type { User, Chain, Zone, Store as StoreType, Product } from '@shared/schema';
 
 // User form schema
@@ -62,6 +62,12 @@ const productFormSchema = z.object({
   active: z.boolean().default(true),
 });
 
+// Assignment form schema
+const assignmentFormSchema = z.object({
+  userId: z.string().min(1, "Selecciona un promotor"),
+  storeId: z.string().min(1, "Selecciona una tienda"),
+});
+
 export default function Configuration() {
   const { toast } = useToast();
 
@@ -84,6 +90,21 @@ export default function Configuration() {
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({ 
     queryKey: ['/api/products'],
+  });
+
+  // Assignments query
+  const assignmentsQuery = useQuery<any[]>({ 
+    queryKey: ['/api/store-assignments'],
+  });
+
+  // Promoters query (filtered users with promoter role)
+  const promotersQuery = useQuery<User[]>({ 
+    queryKey: ['/api/users'],
+  });
+
+  // Stores query for assignments
+  const storesQuery = useQuery<StoreType[]>({ 
+    queryKey: ['/api/stores'],
   });
 
   // User form
@@ -144,6 +165,18 @@ export default function Configuration() {
       active: true,
     },
   });
+
+  // Assignment form
+  const assignmentForm = useForm<z.infer<typeof assignmentFormSchema>>({
+    resolver: zodResolver(assignmentFormSchema),
+    defaultValues: {
+      userId: '',
+      storeId: '',
+    },
+  });
+
+  // Dialog state
+  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
 
   // Edit state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -380,6 +413,44 @@ export default function Configuration() {
       toast({ title: "Error", description: error.message || "Error al actualizar producto", variant: "destructive" });
     },
   });
+
+  // Assignment mutations
+  const createAssignmentMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof assignmentFormSchema>) => {
+      return await apiRequest('POST', '/api/store-assignments', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/store-assignments'] });
+      assignmentForm.reset();
+      setIsAssignmentDialogOpen(false);
+      toast({ title: "Asignación creada exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al crear asignación", variant: "destructive" });
+    },
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: async ({ userId, storeId }: { userId: string; storeId: string }) => {
+      return await apiRequest('DELETE', `/api/store-assignments/${userId}/${storeId}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/store-assignments'] });
+      toast({ title: "Asignación eliminada" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al eliminar asignación", variant: "destructive" });
+    },
+  });
+
+  // Assignment handlers
+  const onAssignmentSubmit = (data: z.infer<typeof assignmentFormSchema>) => {
+    createAssignmentMutation.mutate(data);
+  };
+
+  const handleRemoveAssignment = (userId: string, storeId: string) => {
+    deleteAssignmentMutation.mutate({ userId, storeId });
+  };
 
   // Get chain name by ID
   const getChainName = (chainId: string) => {
@@ -1171,11 +1242,154 @@ export default function Configuration() {
           </Card>
         </TabsContent>
 
-        {/* ASSIGNMENTS TAB - Placeholder */}
+        {/* ASSIGNMENTS TAB */}
         <TabsContent value="assignments" className="space-y-4">
           <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Asignaciones de tiendas - Módulo en desarrollo</p>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+              <div>
+                <CardTitle>Asignaciones de Tiendas</CardTitle>
+                <p className="text-sm text-muted-foreground">Asignar promotores a tiendas</p>
+              </div>
+              <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+                <Button size="sm" onClick={() => setIsAssignmentDialogOpen(true)} data-testid="button-add-assignment">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Asignar
+                </Button>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nueva Asignación</DialogTitle>
+                  </DialogHeader>
+                  <Form {...assignmentForm}>
+                    <form onSubmit={assignmentForm.handleSubmit(onAssignmentSubmit)} className="space-y-4">
+                      <FormField
+                        control={assignmentForm.control}
+                        name="userId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Promotor</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-assignment-user">
+                                  <SelectValue placeholder="Seleccionar promotor" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {promotersQuery.data?.filter(u => u.role === 'promotor').map((user) => (
+                                  <SelectItem key={user.id} value={user.id.toString()}>
+                                    {user.name} ({user.username})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={assignmentForm.control}
+                        name="storeId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tienda</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-assignment-store">
+                                  <SelectValue placeholder="Seleccionar tienda" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {storesQuery.data?.map((store) => (
+                                  <SelectItem key={store.id} value={store.id.toString()}>
+                                    {store.name} - {store.city}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsAssignmentDialogOpen(false)}
+                          data-testid="button-cancel-assignment"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={createAssignmentMutation.isPending}
+                          data-testid="button-submit-assignment"
+                        >
+                          {createAssignmentMutation.isPending ? "Asignando..." : "Asignar"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {assignmentsQuery.isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Cargando asignaciones...</div>
+              ) : !assignmentsQuery.data || assignmentsQuery.data.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground" data-testid="text-no-assignments">
+                  No hay asignaciones. Haz clic en "Asignar" para crear una.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {promotersQuery.data?.filter(u => u.role === 'promotor').map((user) => {
+                    const userAssignments = assignmentsQuery.data.filter(
+                      (a: any) => a.assignment.userId === user.id
+                    );
+                    
+                    return (
+                      <div key={user.id} className="border rounded-md p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="font-medium" data-testid={`text-promoter-name-${user.id}`}>
+                              {user.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">@{user.username}</p>
+                          </div>
+                          <Badge variant="secondary" data-testid={`badge-assignment-count-${user.id}`}>
+                            {userAssignments.length} {userAssignments.length === 1 ? 'tienda' : 'tiendas'}
+                          </Badge>
+                        </div>
+                        {userAssignments.length > 0 ? (
+                          <div className="space-y-2">
+                            {userAssignments.map((assignment: any) => (
+                              <div
+                                key={`${assignment.assignment.userId}-${assignment.assignment.storeId}`}
+                                className="flex items-center justify-between bg-muted/30 rounded px-3 py-2"
+                                data-testid={`assignment-${assignment.assignment.userId}-${assignment.assignment.storeId}`}
+                              >
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{assignment.store.name}</p>
+                                  <p className="text-xs text-muted-foreground">{assignment.store.city}</p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRemoveAssignment(assignment.assignment.userId, assignment.assignment.storeId)}
+                                  disabled={deleteAssignmentMutation.isPending && deleteAssignmentMutation.variables?.userId === assignment.assignment.userId && deleteAssignmentMutation.variables?.storeId === assignment.assignment.storeId}
+                                  data-testid={`button-remove-assignment-${assignment.assignment.userId}-${assignment.assignment.storeId}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Sin asignaciones</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
