@@ -10,6 +10,34 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 20, 2025)
 
+### Evaluation Fields Configuration System
+- **Feature:** Admin-configurable evaluation field system for customizable workflow forms
+- **Access:** Configuration viewing available to all roles; modification restricted to Admins only
+- **Implementation:**
+  - New `evaluation_fields` database table with full CRUD operations
+  - RESTful API endpoints: GET, POST, PUT, DELETE `/api/evaluation-fields`
+  - Configuration → Evaluaciones tab with 5 subtabs (Availability, Quality, Prices, Incidents, Custom Fields)
+  - Each subtab displays fields specific to that evaluation step
+  - Field properties: technicalName (camelCase), label, fieldType, options, required, order, active
+- **Field Types Supported:**
+  - text, number, select, multiselect, checkbox, textarea, photo
+- **UI Features:**
+  - Add/Edit/Delete field functionality with dialog forms
+  - Activate/Deactivate toggle for individual fields
+  - Real-time validation (technicalName must be camelCase, unique)
+  - Options configuration for select/multiselect types (comma-separated)
+  - Drag-and-drop order configuration
+  - Visual badges showing field status (Active/Inactive, Required, Field Type)
+- **Integration:**
+  - Fields stored in database for persistence across sessions
+  - Ready for integration into New Visit workflow for dynamic form rendering
+  - Supports future custom field requirements without code changes
+- **Use Cases:**
+  - Customize evaluation criteria per business needs
+  - Add region-specific or product-specific fields
+  - Enable/disable fields without deleting historical data
+  - Maintain field order for consistent UX
+
 ### Configurable Geofence Radius
 - **Feature:** Store-specific geofence radius configuration for GPS validation
 - **Access:** Supervisors and Administrators only
