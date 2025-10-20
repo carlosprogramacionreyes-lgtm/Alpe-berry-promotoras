@@ -68,8 +68,6 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
     suggestedPrice: '',
     activePromotions: [] as string[],
     promotionDescription: '',
-    popMaterialPresent: false,
-    popMaterialPhotoUrl: '',
     pricePhotoUrl: '',
 
     // Step 5: Incidents
@@ -107,9 +105,13 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/evaluations', 'POST', data);
+      console.log('Mutation function called with data:', data);
+      const response = await apiRequest('/api/evaluations', 'POST', data);
+      console.log('Mutation response:', response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation success:', data);
       toast({
         title: 'Evaluación completada',
         description: '✅ Evaluación completada y guardada exitosamente.',
@@ -117,10 +119,11 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
       queryClient.invalidateQueries({ queryKey: ['/api/evaluations'] });
       onComplete();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Mutation error:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo guardar la evaluación',
+        description: error?.message || 'No se pudo guardar la evaluación',
         variant: 'destructive'
       });
     }
@@ -641,11 +644,24 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
                       id={`incident-${incident}`}
                       checked={formData.incidentTypes.includes(incident)}
                       onCheckedChange={(checked) => {
+                        const noIncidentsOption = '✅ No incidents / Everything OK';
+                        
                         if (checked) {
-                          setFormData({ 
-                            ...formData, 
-                            incidentTypes: [...formData.incidentTypes, incident] 
-                          });
+                          if (incident === noIncidentsOption) {
+                            // If checking "No incidents", clear all other incidents
+                            setFormData({ 
+                              ...formData, 
+                              incidentTypes: [noIncidentsOption],
+                              severity: '',
+                              actionRequired: ''
+                            });
+                          } else {
+                            // If checking any other incident, remove "No incidents" option
+                            setFormData({ 
+                              ...formData, 
+                              incidentTypes: [...formData.incidentTypes.filter(i => i !== noIncidentsOption), incident] 
+                            });
+                          }
                         } else {
                           setFormData({ 
                             ...formData, 
