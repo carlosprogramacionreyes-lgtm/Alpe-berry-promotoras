@@ -2,7 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -185,6 +185,66 @@ export default function Configuration() {
   const [editingStore, setEditingStore] = useState<StoreType | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Initialize forms when editing
+  useEffect(() => {
+    if (editingUser) {
+      userForm.reset({
+        name: editingUser.name,
+        username: editingUser.username,
+        email: editingUser.email || '',
+        password: '', // Empty for edit - only update if filled
+        role: editingUser.role as 'admin' | 'supervisor' | 'analista' | 'promotor',
+        active: editingUser.active,
+      });
+    }
+  }, [editingUser]);
+
+  useEffect(() => {
+    if (editingChain) {
+      chainForm.reset({
+        name: editingChain.name,
+        description: editingChain.description || '',
+      });
+    }
+  }, [editingChain]);
+
+  useEffect(() => {
+    if (editingZone) {
+      zoneForm.reset({
+        chainId: editingZone.chainId,
+        name: editingZone.name,
+        description: editingZone.description || '',
+      });
+    }
+  }, [editingZone]);
+
+  useEffect(() => {
+    if (editingStore) {
+      storeForm.reset({
+        chainId: editingStore.chainId,
+        zoneId: editingStore.zoneId,
+        name: editingStore.name,
+        address: editingStore.address || '',
+        city: editingStore.city || '',
+        latitude: editingStore.latitude || '',
+        longitude: editingStore.longitude || '',
+        geofenceRadius: editingStore.geofenceRadius || 100,
+        active: editingStore.active,
+      });
+    }
+  }, [editingStore]);
+
+  useEffect(() => {
+    if (editingProduct) {
+      productForm.reset({
+        name: editingProduct.name,
+        icon: editingProduct.icon,
+        color: editingProduct.color,
+        active: editingProduct.active,
+      });
+    }
+  }, [editingProduct]);
+
   // Mutations
   const createUserMutation = useMutation({
     mutationFn: async (data: z.infer<typeof userFormSchema>) => {
@@ -335,10 +395,14 @@ export default function Configuration() {
   // Update mutations
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof userFormSchema>> }) => {
-      const payload = {
+      const payload: any = {
         ...data,
         email: data.email && data.email.trim() !== '' ? data.email : undefined,
       };
+      // Don't send password if empty (partial update)
+      if (!data.password || data.password.trim() === '') {
+        delete payload.password;
+      }
       return await apiRequest('PUT', `/api/users/${id}`, payload);
     },
     onSuccess: () => {

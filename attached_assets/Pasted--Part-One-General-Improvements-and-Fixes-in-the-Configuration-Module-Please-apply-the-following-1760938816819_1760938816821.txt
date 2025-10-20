@@ -1,0 +1,177 @@
+⚙️ Part One — General Improvements and Fixes in the Configuration Module
+
+Please apply the following updates and functional fixes across all configuration modules before adding new administrative features:
+
+🔹 EDIT FUNCTIONALITY (Partial Updates)
+
+Currently, when editing a record in any module, the system requires modifying all fields.
+It should allow partial updates, letting the user change only the fields they need.
+
+Requirements per module:
+1️⃣ Users:
+
+Allow editing of individual fields (name, username, role, or password).
+
+Do not require all fields to be filled to save changes.
+
+2️⃣ Chains:
+
+Enable full editing (name and description).
+
+3️⃣ Zones:
+
+Editing should not require changing the associated chain.
+
+Only update the chain if a new one is selected.
+
+4️⃣ Stores:
+
+Allow editing of individual fields (name, address, city, longitude, latitude).
+
+Changing coordinates should not require reselecting chain, zone, or store name.
+
+5️⃣ Products:
+
+Allow independent editing of name, color, or icon.
+
+Do not force all fields to be modified each time.
+
+🔹 ASSIGNMENTS
+
+6️⃣ User–Store Assignments:
+
+Allow assigning multiple stores to the same user in one action.
+
+Previously assigned stores must remain checked when reopening the modal.
+
+Adding new stores must not remove existing ones.
+
+🔹 VALIDATIONS AND OPTIONAL FIELDS
+
+7️⃣ Case-insensitive validation:
+
+In all Configuration modules (Users, Chains, Zones, Stores, and Products), all comparisons and validations must be case-insensitive.
+
+This applies to names and any unique text fields.
+
+Example: “Monterrey” and “monterrey” should be treated as the same value and considered duplicates if repeated.
+
+8️⃣ Optional email field in Users:
+
+The email field should no longer be required when creating or updating a user.
+
+The form must validate only the following fields:
+
+Username
+
+Name
+
+Password
+
+Role
+
+If an email is entered, validate the format, but allow it to be empty.
+
+🔹 SUPPORTING TABLES
+
+9️⃣ New or required tables:
+
+Ensure these tables exist or create them as needed:
+
+user_store_assignments → user–store relationships.
+
+backup_logs → database backup history.
+
+promoter_visits → future store visits tracking (user, store, coordinates, check-in/out, notes).
+
+All tables should include appropriate foreign keys referencing their main entities.
+
+🔹 PROJECT ORGANIZATION
+
+🔟 Folder structure:
+
+Reorganize all files into a clean, professional folder layout:
+
+/client → frontend (components, pages, hooks, utils).
+
+/server → backend (routes, controllers, models, middlewares, backups).
+
+Update imports as needed without breaking functionality.
+
+⚙️ Goal of Part One:
+
+Make all configuration modules fully editable with flexible validation.
+
+Support multiple store assignments per user.
+
+Prepare all tables for upcoming features (visits and backups).
+
+Keep the project clean and well organized.
+
+⚙️ Part Two — New “Data Base” Tab (after completing Part One)
+
+Once all the previous updates are done and working properly, add a new tab under Configuration called “Data Base”, visible only to admin and superadmin users.
+
+📦 Main Functionality
+
+Add a button labeled “📥 Download database structure”.
+
+When clicked, open a password modal:
+
+Message: “Enter the password to continue.”
+
+Valid password: Cari2230*
+
+If the password is correct:
+
+Generate a .sql file containing only the database structure (no data).
+
+Automatically download it to the admin’s browser.
+
+Save a copy on the server under /server/backups/.
+
+File name format: estructura_bd_<date>_<time>.sql
+
+If incorrect:
+
+Show “❌ Incorrect password. Backup not generated.”
+
+On success:
+
+Show “✅ Database structure downloaded successfully.”
+
+📜 Download History
+
+Use the backup_logs table to record every backup:
+
+File name
+
+Admin user
+
+Timestamp
+
+Display these logs below the button in a table: Date and time | User | File.
+
+🔒 Restrictions
+
+Only admin/superadmin roles can access this tab.
+
+Export structure only, not data.
+
+Files must remain stored locally under /server/backups/.
+
+🎨 Design
+
+Keep the same visual style as the Configuration panel.
+
+Add a database icon in the sidebar.
+
+Display the history in a clean Card or DataTable component with pagination.
+
+✅ Final Goal:
+
+Ensure all Configuration modules are fully functional.
+
+Add the secure “Data Base” tab for administrators.
+
+Log every backup and store files correctly both on the server and in the interface.
