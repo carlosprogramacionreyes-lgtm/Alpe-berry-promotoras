@@ -106,7 +106,7 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('Mutation function called with data:', data);
-      const response = await apiRequest('/api/evaluations', 'POST', data);
+      const response = await apiRequest('POST', '/api/evaluations', data);
       console.log('Mutation response:', response);
       return response;
     },
@@ -150,12 +150,12 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
       appearance: formData.appearance,
       packagingCondition: formData.packagingCondition,
       qualityPhotoUrl: formData.qualityPhotoUrl,
-      currentPrice: parseFloat(formData.currentPrice) || 0,
-      suggestedPrice: parseFloat(formData.suggestedPrice) || 0,
+      currentPrice: formData.currentPrice || null,
+      suggestedPrice: formData.suggestedPrice || null,
       activePromotions: formData.activePromotions,
       pricePhotoUrl: formData.pricePhotoUrl,
       hasIncidents: formData.incidentTypes.length > 0,
-      completedAt: new Date().toISOString()
+      completedAt: new Date()
     };
 
     console.log('Submitting evaluation:', evaluationData);

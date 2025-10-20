@@ -141,6 +141,8 @@ export const insertEvaluationSchema = createInsertSchema(evaluations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  completedAt: z.coerce.date().optional().nullable(),
 });
 
 export type InsertEvaluation = z.infer<typeof insertEvaluationSchema>;
