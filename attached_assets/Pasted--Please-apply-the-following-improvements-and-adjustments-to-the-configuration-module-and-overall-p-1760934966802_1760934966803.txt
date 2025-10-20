@@ -1,0 +1,32 @@
+⚙️ Please apply the following improvements and adjustments to the configuration module and overall project organization:
+
+1️⃣ Make all configuration sections (Users, Chains, Zones, Stores, Products, Evaluations) case-insensitive.
+When comparing or validating names or unique fields, it should not matter if the user types uppercase or lowercase letters.
+
+2️⃣ In the Users section, make the email field optional since many users do not have one.
+
+3️⃣ Add full editing functionality in the Users section.
+Administrators should be able to modify username, name, role, and password, and see a confirmation message when the change is saved.
+
+4️⃣ In the Chains section, enable editing so names and descriptions can be modified.
+
+5️⃣ In the Zones section, enable editing so zone information and its chain relationship can be updated.
+
+6️⃣ In the Stores section, enable editing so name, address, city, and related chain/zone can be updated.
+
+7️⃣ In the Stores section, add longitude and latitude fields.
+These will later be used for the geolocation of store visits.
+
+8️⃣ Add a new section called “Assignments” under Configuration.
+This will allow administrators to assign which stores each user can access or see, with an interface that lists users and lets admins select stores for each one.
+
+9️⃣ In the Products section, enable editing so product name, color, and icon can be updated.
+
+🔟 Reorganize the project files into a clean and professional folder structure.
+Right now, many files are loose in the root of the project, and it looks disorganized.
+Group everything properly by client, server, components, and pages, making sure all imports still work after reorganization.
+
+⚙️ Keep the same database schema for all existing modules.
+Only create new fields or tables when strictly necessary (for example, latitude/longitude or assignments).
+
+✅ The goal is to make all configuration sections fully editable, connected to the real database, and organized in a clean structure without breaking the design or existing functionality.
