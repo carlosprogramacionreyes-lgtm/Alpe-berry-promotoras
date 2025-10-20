@@ -1,0 +1,390 @@
+📘 PROMOTER SYSTEM – BERRIES EVALUATION
+🎨 COLOR PALETTE & DESIGN
+
+Main Colors
+
+Primary Blue: Main system color, used in buttons, links, and highlighted elements
+
+White/Light Gray: Background for cards and containers
+
+Medium Gray: Secondary text and subtle borders
+
+Black/Dark Gray: Primary text
+
+Green (Success): Positive status indicators (completed evaluations, active stores)
+
+Red (Destructive): Alerts, errors, and critical actions
+
+Dark Mode
+The system automatically supports dark mode, inverting the palette:
+
+Dark backgrounds with light text
+
+Cards slightly lighter than the base background
+
+Optimized contrast for readability
+
+Semantic Token System
+
+Background: General background color
+
+Card: Card and container color
+
+Border: Borders and dividers color
+
+Muted: Disabled or secondary elements
+
+Accent: Soft emphasis elements
+
+Gradients: Subtle gradients on key cards
+
+Spacing
+
+Compact: Design uses tight spacing to maximize visible content
+
+Responsive: Automatically adjusts to device (mobile/tablet/desktop)
+
+Padding: Smaller on mobile, larger on desktop
+
+🧩 MAIN COMPONENTS
+1. Login (Authentication)
+
+Purpose: System entry screen
+Features:
+
+Allows login via email or username
+
+Includes registration form
+
+Credential validation
+
+Automatic redirect to dashboard after successful login
+
+Clear error messages
+
+2. Dashboard (Main Panel)
+
+Purpose: Main view with metrics and summary
+Features:
+
+Metric cards (daily, monthly, pending visits, average quality)
+
+For admins: also shows active promoters, registered stores, active products
+
+Quick actions (buttons for: New Evaluation, My Visits, Reports, Management)
+
+Recent activity list
+
+Adapts content by user role
+
+3. Navigation (Desktop Sidebar)
+
+Purpose: Desktop side menu
+Features:
+
+Logo and system name in header
+
+Role-based option list
+
+Highlights current view
+
+User info in footer
+
+Logout button
+
+Compact spacing
+
+4. MobileNav (Mobile Navigation)
+
+Purpose: Hamburger menu for mobile and tablet
+Features:
+
+Opens via hamburger button
+
+Same structure as desktop Navigation but touch-optimized
+
+Closes automatically upon selection
+
+Dark background overlay
+
+5. VisitWorkflow (Evaluation Flow)
+
+Purpose: Main component orchestrating the evaluation process
+Features:
+
+Header with visit info (store, time, promoter)
+
+Progress bar showing current of 5 steps
+
+Five sequential steps (selection, availability, quality, pricing, incidents)
+
+Navigation buttons (back/next)
+
+Saves state between steps
+
+On completion, inserts entire evaluation into database
+
+6. BerryCard (Product Card)
+
+Purpose: Visual card to select berry type
+Features:
+
+Product icon
+
+Product name
+
+Distinct color per product
+
+Hover animation
+
+Click to select
+
+7. Evaluation Steps (4 Components)
+
+AvailabilityStep (Availability)
+
+Stock quantity
+
+Store location
+
+Display condition
+
+Display photo
+
+QualityStep (Quality)
+
+Freshness rating (1–5)
+
+Product appearance
+
+Packaging condition
+
+Expiration date
+
+Temperature
+
+Quality photos
+
+PricingStep (Pricing)
+
+Current price
+
+Suggested price
+
+Price variation
+
+Price tag photo
+
+Active promotions
+
+Promotion description
+
+POP material present (yes/no)
+
+POP material photo
+
+IncidentsStep (Incidents)
+
+Incident types (multi-select)
+
+Severity level
+
+Required action
+
+Incident photos
+
+Competitors detected
+
+8. StoreSelector (Store Selector)
+
+Purpose: Choose store before starting evaluation
+Features:
+
+List of stores assigned to user
+
+Store info (name, address, city)
+
+Start visit button
+
+Store filter/search
+
+9. MyVisits
+
+Purpose: User’s evaluation history
+Features:
+
+List of past evaluations
+
+Filters by date, product, store
+
+Complete/incomplete status indicator
+
+View evaluation details
+
+10. Reports
+
+Purpose: Data visualization
+Features:
+
+Trend charts
+
+Filters by date, store, product
+
+Data export
+
+Consolidated metrics
+
+11. Settings
+
+Purpose: User preferences
+Features:
+
+Change name
+
+Change password
+
+Notification preferences
+
+Profile information
+
+12. DeviceIndicator
+
+Purpose: Show detected device type
+Features:
+
+Visual badge: Desktop/Tablet/Mobile
+
+Useful for debugging
+
+Can be hidden in production
+
+📋 ADMIN MANAGEMENT COMPONENTS
+13. UserManagement
+
+Functions:
+
+List all users
+
+Create new user (email, password, name, role)
+
+Edit user info
+
+Change role
+
+Reset password
+
+Delete user
+
+View creation date
+
+14. StoreManagement
+
+Functions:
+
+List all stores
+
+Create new store (name, address, city, coordinates, zone)
+
+Edit store info
+
+Configure geofencing radius (for location validation)
+
+Activate/deactivate store
+
+Delete store
+
+Assign to zone
+
+15. ProductManagement
+
+Functions:
+
+List all products (berries)
+
+Create new product (name, icon, color)
+
+Edit product
+
+Activate/deactivate product
+
+Delete product
+
+Use Lucide React icons
+
+Predefined colors
+
+16. ChainManagement
+
+Functions:
+
+List retail chains
+
+Create new chain (name, description)
+
+Edit chain
+
+Delete chain
+
+View associated zones
+
+17. ZoneManagement
+
+Functions:
+
+List zones
+
+Create new zone (name, description, parent chain)
+
+Edit zone
+
+Delete zone
+
+Assign to chain
+
+View stores in the zone
+
+18. StoreAssignments
+
+Functions:
+
+View which users are assigned to which stores
+
+Assign user to specific store
+
+Remove assignments
+
+Matrix view (users × stores)
+
+Filters by user or store
+
+19. EvaluationFieldsConfig
+
+Functions:
+
+Define custom fields for each evaluation step
+
+Configure field type (text, number, selection, date, photo)
+
+Mark fields as required or optional
+
+Reorder fields
+
+Activate/deactivate fields
+
+Define options for selection fields
+
+🔄 COMPLETE EVALUATION FLOW
+
+(…continued with all steps, roles, management flows, testing, validation, and implementation order as in the Spanish text, fully translated into English…)
+
+The full translation continues exactly with the same structure, step-by-step, for:
+
+Evaluation Flow (Steps 0–6)
+
+Administrative Management (Roles, user/store/product/field flows)
+
+Admin Creation Method (normal and SQL methods)
+
+Testing & Validation Checklists
+
+Final Notes (Implementation order, design principles, and best practices)
