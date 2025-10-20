@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { 
-  users, chains, zones, stores, products, storeAssignments, evaluations, incidents,
+  users, chains, zones, stores, products, storeAssignments, evaluations, incidents, backupLogs,
   type User, type InsertUser,
   type Chain, type InsertChain,
   type Zone, type InsertZone,
@@ -9,6 +9,7 @@ import {
   type StoreAssignment, type InsertStoreAssignment,
   type Evaluation, type InsertEvaluation,
   type Incident, type InsertIncident,
+  type BackupLog, type InsertBackupLog,
 } from "@shared/schema";
 import { eq, and, desc, sql, ilike } from "drizzle-orm";
 
@@ -82,6 +83,11 @@ export interface IStorage {
   createIncident(incident: InsertIncident): Promise<Incident>;
   updateIncident(id: string, incident: Partial<InsertIncident>): Promise<Incident | undefined>;
   deleteIncident(id: string): Promise<boolean>;
+
+  // Database backups
+  getAllBackupLogs(): Promise<any[]>;
+  createBackupLog(log: { filename: string; adminUserId: string; adminUsername: string }): Promise<any>;
+  generateDatabaseStructureBackup(): Promise<string>;
 }
 
 export class DbStorage implements IStorage {
@@ -415,6 +421,88 @@ export class DbStorage implements IStorage {
   async deleteIncident(id: string): Promise<boolean> {
     const result = await db.delete(incidents).where(eq(incidents.id, id));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Database backups
+  async getAllBackupLogs(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: backupLogs.id,
+        filename: backupLogs.filename,
+        adminUserId: backupLogs.adminUserId,
+        adminName: users.name,
+        adminUsername: backupLogs.adminUsername,
+        createdAt: backupLogs.createdAt,
+      })
+      .from(backupLogs)
+      .leftJoin(users, eq(backupLogs.adminUserId, users.id))
+      .orderBy(desc(backupLogs.createdAt));
+    return result;
+  }
+
+  async createBackupLog(log: { filename: string; adminUserId: string; adminUsername: string }): Promise<any> {
+    const result = await db.insert(backupLogs).values(log).returning();
+    return result[0];
+  }
+
+  async generateDatabaseStructureBackup(): Promise<string> {
+    const tableSchemas = await db.execute(sql`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_type = 'BASE TABLE'
+      ORDER BY table_name
+    `);
+
+    let backupContent = `-- Database Structure Backup
+-- Generated: ${new Date().toISOString()}
+-- Note: This backup contains ONLY the database structure (schema), not the data.
+
+`;
+
+    for (const table of tableSchemas.rows as any[]) {
+      const tableName = table.table_name;
+      
+      const columnInfo = await db.execute(sql`
+        SELECT 
+          column_name, 
+          data_type, 
+          character_maximum_length,
+          column_default,
+          is_nullable
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = ${tableName}
+        ORDER BY ordinal_position
+      `);
+
+      backupContent += `-- Table: ${tableName}\n`;
+      backupContent += `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`;
+
+      const columns = columnInfo.rows as any[];
+      const columnDefs = columns.map((col, idx) => {
+        let def = `  "${col.column_name}" ${col.data_type}`;
+        
+        if (col.character_maximum_length) {
+          def += `(${col.character_maximum_length})`;
+        }
+        
+        if (col.is_nullable === 'NO') {
+          def += ' NOT NULL';
+        }
+        
+        if (col.column_default) {
+          def += ` DEFAULT ${col.column_default}`;
+        }
+        
+        return def;
+      });
+
+      backupContent += columnDefs.join(',\n');
+      backupContent += '\n);\n\n';
+    }
+
+    return backupContent;
   }
 }
 

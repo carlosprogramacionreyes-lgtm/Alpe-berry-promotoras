@@ -568,6 +568,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Backup logs routes
+  app.get("/api/backup-logs", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      const backupLogs = await storage.getAllBackupLogs();
+      res.json(backupLogs);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener historial de respaldos" });
+    }
+  });
+
+  // Database backup route
+  app.post("/api/database/backup", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "No autenticado" });
+      }
+
+      const user = req.user as any;
+      const backupFilename = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sql`;
+      
+      const backupContent = await storage.generateDatabaseStructureBackup();
+      
+      await storage.createBackupLog({
+        filename: backupFilename,
+        adminUserId: user.id,
+        adminUsername: user.username,
+      });
+      
+      res.setHeader('Content-Type', 'application/sql');
+      res.setHeader('Content-Disposition', `attachment; filename="${backupFilename}"`);
+      res.send(backupContent);
+    } catch (error: any) {
+      console.error('Error generating backup:', error);
+      res.status(500).json({ message: error.message || "Error al generar respaldo" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

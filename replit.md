@@ -4,6 +4,19 @@
 
 Berry Quality Inspector is a field evaluation system designed for berry quality inspection with role-based access control. The application serves field promoters who conduct quality evaluations at retail stores, as well as supervisors, analysts, and administrators who monitor and analyze the collected data. The system is mobile-first, optimized for quick data entry in field conditions, with comprehensive reporting and configuration capabilities for administrative users.
 
+## Recent Changes
+
+### October 2025 - Multi-Store Assignment Feature
+- **Feature:** Bulk store assignment for promoters with checkbox-based selection
+- **Implementation:** Replaced single-store Select dropdown with scrollable checkbox list
+- **UX Enhancements:**
+  - "Seleccionar todas" (Select All) and "Limpiar" (Clear) buttons for bulk operations
+  - Pre-checking of existing assignments when user is selected
+  - Real-time counter showing number of selected stores
+  - Wider dialog (max-w-2xl) with scrollable store list (max-height 300px)
+- **Backend Logic:** Calculates delta between existing and new selections to add/remove assignments in one action
+- **Validation:** Case-insensitive duplicate detection across all configuration modules (Users, Chains, Zones, Stores, Products) using PostgreSQL `ilike` operator
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

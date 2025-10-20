@@ -16,8 +16,18 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X } from 'lucide-react';
+import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X, Database, Download } from 'lucide-react';
 import type { User, Chain, Zone, Store as StoreType, Product } from '@shared/schema';
+
+interface AuthUser {
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
 
 // User form schema
 const userFormSchema = z.object({
@@ -72,6 +82,13 @@ const assignmentFormSchema = z.object({
 export default function Configuration() {
   const { toast } = useToast();
 
+  // Fetch current user
+  const { data: authData } = useQuery<AuthUser>({ 
+    queryKey: ['/api/auth/me'],
+    retry: false,
+  });
+  const currentUser = authData?.user;
+
   // Fetch data
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({ 
     queryKey: ['/api/users'],
@@ -96,6 +113,12 @@ export default function Configuration() {
   // Assignments query
   const assignmentsQuery = useQuery<any[]>({ 
     queryKey: ['/api/store-assignments'],
+  });
+
+  // Backup logs query
+  const backupLogsQuery = useQuery<any[]>({ 
+    queryKey: ['/api/backup-logs'],
+    enabled: currentUser?.role === 'admin' || currentUser?.role === 'supervisor',
   });
 
   // Promoters query (filtered users with promoter role)
@@ -180,6 +203,11 @@ export default function Configuration() {
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
+  
+  // Database backup state
+  const [isBackupPasswordDialogOpen, setIsBackupPasswordDialogOpen] = useState(false);
+  const [backupPassword, setBackupPassword] = useState("");
+  const [backupPasswordError, setBackupPasswordError] = useState("");
 
   // Edit state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -586,6 +614,53 @@ export default function Configuration() {
     }
   };
 
+  // Backup handlers
+  const handleInitiateBackup = () => {
+    setBackupPassword("");
+    setBackupPasswordError("");
+    setIsBackupPasswordDialogOpen(true);
+  };
+
+  const handleBackupPasswordSubmit = async () => {
+    const correctPassword = "Cari2230*";
+    
+    if (backupPassword !== correctPassword) {
+      setBackupPasswordError("Contraseña incorrecta");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/database/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al generar el respaldo');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      queryClient.invalidateQueries({ queryKey: ['/api/backup-logs'] });
+      setIsBackupPasswordDialogOpen(false);
+      toast({ title: "Respaldo generado exitosamente" });
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Error al generar respaldo", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   // Get chain name by ID
   const getChainName = (chainId: string) => {
     const chain = chains.find(c => c.id === chainId);
@@ -614,7 +689,7 @@ export default function Configuration() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-8 lg:w-auto">
+        <TabsList className="w-full lg:w-auto flex flex-wrap">
           <TabsTrigger value="users" data-testid="tab-users"><Users className="w-4 h-4 mr-2" />Usuarios</TabsTrigger>
           <TabsTrigger value="chains" data-testid="tab-chains"><LinkIcon className="w-4 h-4 mr-2" />Cadenas</TabsTrigger>
           <TabsTrigger value="zones" data-testid="tab-zones"><MapPin className="w-4 h-4 mr-2" />Zonas</TabsTrigger>
@@ -624,6 +699,9 @@ export default function Configuration() {
           <TabsTrigger value="fields" data-testid="tab-fields"><ListChecks className="w-4 h-4 mr-2" />Evaluaciones</TabsTrigger>
           <TabsTrigger value="permissions" data-testid="tab-permissions"><Shield className="w-4 h-4 mr-2" />Permisos</TabsTrigger>
           <TabsTrigger value="notifications" data-testid="tab-notifications"><Bell className="w-4 h-4 mr-2" />Notificaciones</TabsTrigger>
+          {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor') && (
+            <TabsTrigger value="database" data-testid="tab-database"><Database className="w-4 h-4 mr-2" />Data Base</TabsTrigger>
+          )}
         </TabsList>
 
         {/* USERS TAB */}
@@ -1606,6 +1684,84 @@ export default function Configuration() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* DATABASE TAB */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor') && (
+          <TabsContent value="database" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Database className="w-5 h-5 text-primary" />
+                      Respaldo de Base de Datos
+                    </CardTitle>
+                    <CardDescription>Genera un respaldo de la estructura de la base de datos</CardDescription>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={handleInitiateBackup}
+                    data-testid="button-create-backup"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Crear Respaldo
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    <p>El respaldo incluye únicamente la estructura de la base de datos (tablas, columnas, índices).</p>
+                    <p className="mt-1">No incluye datos de usuarios ni información confidencial.</p>
+                  </div>
+
+                  {backupLogsQuery.isLoading ? (
+                    <div className="text-center py-8">
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="font-medium text-sm mb-2">Historial de Respaldos</h3>
+                      {backupLogsQuery.data && backupLogsQuery.data.length > 0 ? (
+                        <div className="border rounded-md">
+                          <table className="w-full">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                <th className="text-left p-2 text-sm font-medium">Archivo</th>
+                                <th className="text-left p-2 text-sm font-medium">Usuario</th>
+                                <th className="text-left p-2 text-sm font-medium">Fecha</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {backupLogsQuery.data.map((log: any, index: number) => (
+                                <tr key={log.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                                  <td className="p-2 text-sm" data-testid={`text-backup-filename-${log.id}`}>
+                                    {log.filename}
+                                  </td>
+                                  <td className="p-2 text-sm" data-testid={`text-backup-user-${log.id}`}>
+                                    {log.adminName}
+                                  </td>
+                                  <td className="p-2 text-sm" data-testid={`text-backup-date-${log.id}`}>
+                                    {new Date(log.createdAt).toLocaleString('es-MX')}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No hay respaldos registrados
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Edit User Dialog */}
@@ -2048,6 +2204,61 @@ export default function Configuration() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Backup Password Dialog */}
+      <Dialog open={isBackupPasswordDialogOpen} onOpenChange={setIsBackupPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contraseña de Respaldo</DialogTitle>
+            <DialogDescription>
+              Ingresa la contraseña para generar el respaldo de la base de datos
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="backup-password">Contraseña</Label>
+              <Input
+                id="backup-password"
+                type="password"
+                value={backupPassword}
+                onChange={(e) => {
+                  setBackupPassword(e.target.value);
+                  setBackupPasswordError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleBackupPasswordSubmit();
+                  }
+                }}
+                placeholder="Ingrese la contraseña"
+                data-testid="input-backup-password"
+              />
+              {backupPasswordError && (
+                <p className="text-sm text-destructive" data-testid="text-password-error">
+                  {backupPasswordError}
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsBackupPasswordDialogOpen(false)}
+              data-testid="button-cancel-backup"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleBackupPasswordSubmit}
+              data-testid="button-confirm-backup"
+            >
+              Generar Respaldo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
