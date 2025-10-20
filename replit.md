@@ -17,6 +17,19 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
 - **Backend Logic:** Calculates delta between existing and new selections to add/remove assignments in one action
 - **Validation:** Case-insensitive duplicate detection across all configuration modules (Users, Chains, Zones, Stores, Products) using PostgreSQL `ilike` operator
 
+### October 2025 - Database Backup Feature
+- **Feature:** Password-protected database structure backup for administrators
+- **Access Control:** Exclusive to admin and supervisor roles
+- **Security:** Password-protected (Cari2230*) backup generation
+- **Backup Content:** Database structure only (schema, tables, columns) - no sensitive data
+- **Implementation:**
+  - "Data Base" tab in Configuration (conditionally rendered based on user role)
+  - Password validation dialog before backup generation
+  - SQL file generation using information_schema queries
+  - Automatic backup logging in backup_logs table
+  - Backup history display with filename, admin user, and timestamp
+- **Backend:** SQL structure extraction via PostgreSQL information_schema with CREATE TABLE statement generation
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
