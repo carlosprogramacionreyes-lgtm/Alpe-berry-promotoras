@@ -16,8 +16,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X, Database, Download, Table2 } from 'lucide-react';
-import type { User, Chain, Zone, Store as StoreType, Product } from '@shared/schema';
+import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X, Database, Download, Table2, Check, XCircle, Eye, EyeOff } from 'lucide-react';
+import type { User, Chain, Zone, Store as StoreType, Product, EvaluationField } from '@shared/schema';
 
 interface AuthUser {
   user: {
@@ -79,6 +79,19 @@ const assignmentFormSchema = z.object({
   storeIds: z.array(z.string()).min(1, "Selecciona al menos una tienda"),
 });
 
+// Evaluation field form schema
+const evaluationFieldFormSchema = z.object({
+  step: z.enum(['availability', 'quality', 'prices', 'incidents', 'custom']),
+  technicalName: z.string().min(2, "El nombre técnico debe tener al menos 2 caracteres")
+    .regex(/^[a-z][a-zA-Z0-9]*$/, "Debe empezar con minúscula y solo contener letras/números sin espacios"),
+  label: z.string().min(2, "La etiqueta debe tener al menos 2 caracteres"),
+  fieldType: z.enum(['text', 'number', 'select', 'multiselect', 'checkbox', 'textarea', 'photo']),
+  options: z.string().optional(),
+  required: z.boolean().default(false),
+  order: z.number().int().min(0, "El orden debe ser un número positivo"),
+  active: z.boolean().default(true),
+});
+
 export default function Configuration() {
   const { toast } = useToast();
 
@@ -108,6 +121,11 @@ export default function Configuration() {
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({ 
     queryKey: ['/api/products'],
+  });
+
+  // Evaluation fields query
+  const { data: evaluationFields = [], isLoading: fieldsLoading } = useQuery<EvaluationField[]>({ 
+    queryKey: ['/api/evaluation-fields'],
   });
 
   // Assignments query
@@ -222,6 +240,22 @@ export default function Configuration() {
   const [editingZone, setEditingZone] = useState<Zone | null>(null);
   const [editingStore, setEditingStore] = useState<StoreType | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingField, setEditingField] = useState<EvaluationField | null>(null);
+
+  // Evaluation field form
+  const evaluationFieldForm = useForm<z.infer<typeof evaluationFieldFormSchema>>({
+    resolver: zodResolver(evaluationFieldFormSchema),
+    defaultValues: {
+      step: 'availability',
+      technicalName: '',
+      label: '',
+      fieldType: 'text',
+      options: '',
+      required: false,
+      order: 0,
+      active: true,
+    },
+  });
 
   // Initialize forms when editing
   useEffect(() => {
@@ -282,6 +316,21 @@ export default function Configuration() {
       });
     }
   }, [editingProduct]);
+
+  useEffect(() => {
+    if (editingField) {
+      evaluationFieldForm.reset({
+        step: editingField.step as 'availability' | 'quality' | 'prices' | 'incidents' | 'custom',
+        technicalName: editingField.technicalName,
+        label: editingField.label,
+        fieldType: editingField.fieldType as 'text' | 'number' | 'select' | 'multiselect' | 'checkbox' | 'textarea' | 'photo',
+        options: editingField.options || '',
+        required: editingField.required,
+        order: editingField.order,
+        active: editingField.active,
+      });
+    }
+  }, [editingField]);
 
   // Mutations
   const createUserMutation = useMutation({
@@ -427,6 +476,48 @@ export default function Configuration() {
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Error al eliminar producto", variant: "destructive" });
+    },
+  });
+
+  const createEvaluationFieldMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof evaluationFieldFormSchema>) => {
+      return await apiRequest('POST', '/api/evaluation-fields', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/evaluation-fields'] });
+      evaluationFieldForm.reset();
+      setEditingField(null);
+      toast({ title: "Campo de evaluación creado exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al crear campo", variant: "destructive" });
+    },
+  });
+
+  const updateEvaluationFieldMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof evaluationFieldFormSchema>> }) => {
+      return await apiRequest('PUT', `/api/evaluation-fields/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/evaluation-fields'] });
+      setEditingField(null);
+      toast({ title: "Campo de evaluación actualizado exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar campo", variant: "destructive" });
+    },
+  });
+
+  const deleteEvaluationFieldMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/evaluation-fields/${id}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/evaluation-fields'] });
+      toast({ title: "Campo eliminado" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al eliminar campo", variant: "destructive" });
     },
   });
 
@@ -1687,13 +1778,369 @@ export default function Configuration() {
           </Card>
         </TabsContent>
 
-        {/* FIELDS TAB - Placeholder */}
+        {/* EVALUATION FIELDS TAB */}
         <TabsContent value="fields" className="space-y-4">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Configuración de campos de evaluación - Módulo en desarrollo</p>
-            </CardContent>
-          </Card>
+          {currentUser?.role === 'admin' ? (
+            <Tabs defaultValue="availability" className="space-y-4">
+              <TabsList className="w-full lg:w-auto flex flex-wrap">
+                <TabsTrigger value="availability" data-testid="subtab-availability">Disponibilidad</TabsTrigger>
+                <TabsTrigger value="quality" data-testid="subtab-quality">Calidad</TabsTrigger>
+                <TabsTrigger value="prices" data-testid="subtab-prices">Precios</TabsTrigger>
+                <TabsTrigger value="incidents" data-testid="subtab-incidents">Incidentes</TabsTrigger>
+                <TabsTrigger value="custom" data-testid="subtab-custom">Campos Personalizados</TabsTrigger>
+              </TabsList>
+
+              {(['availability', 'quality', 'prices', 'incidents', 'custom'] as const).map((step) => {
+                const stepFields = evaluationFields.filter(f => f.step === step);
+                const stepLabels = {
+                  availability: 'Disponibilidad',
+                  quality: 'Calidad',
+                  prices: 'Precios',
+                  incidents: 'Incidentes',
+                  custom: 'Campos Personalizados'
+                };
+
+                return (
+                  <TabsContent key={step} value={step} className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-base">Campos de {stepLabels[step]}</CardTitle>
+                            <CardDescription>Configura los campos que se mostrarán en el paso de {stepLabels[step].toLowerCase()}</CardDescription>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              setEditingField(null);
+                              evaluationFieldForm.reset({
+                                step,
+                                technicalName: '',
+                                label: '',
+                                fieldType: 'text',
+                                options: '',
+                                required: false,
+                                order: stepFields.length,
+                                active: true,
+                              });
+                            }}
+                            data-testid={`button-add-field-${step}`}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Agregar Campo
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {fieldsLoading ? (
+                          <div className="space-y-2">
+                            {[1, 2, 3].map((i) => (
+                              <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                          </div>
+                        ) : stepFields.length > 0 ? (
+                          <div className="space-y-2">
+                            {stepFields.map((field) => (
+                              <div
+                                key={field.id}
+                                className="flex items-center justify-between p-3 border rounded-md hover-elevate"
+                                data-testid={`field-item-${field.technicalName}`}
+                              >
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <code className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
+                                      {field.technicalName}
+                                    </code>
+                                    <Badge variant={field.active ? "default" : "secondary"} className="text-xs">
+                                      {field.active ? (
+                                        <><Eye className="w-3 h-3 mr-1" />Activo</>
+                                      ) : (
+                                        <><EyeOff className="w-3 h-3 mr-1" />Inactivo</>
+                                      )}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-xs">
+                                      {field.fieldType}
+                                    </Badge>
+                                    {field.required && (
+                                      <Badge variant="outline" className="text-xs text-red-600">
+                                        Requerido
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-foreground">{field.label}</p>
+                                  {field.options && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Opciones: {field.options}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Orden: {field.order}</span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingField(field)}
+                                    data-testid={`button-edit-field-${field.technicalName}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      if (confirm(`¿Eliminar el campo "${field.label}"?`)) {
+                                        deleteEvaluationFieldMutation.mutate(field.id);
+                                      }
+                                    }}
+                                    disabled={deleteEvaluationFieldMutation.isPending}
+                                    data-testid={`button-delete-field-${field.technicalName}`}
+                                  >
+                                    <Trash className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={field.active ? "secondary" : "default"}
+                                    onClick={() => {
+                                      updateEvaluationFieldMutation.mutate({
+                                        id: field.id,
+                                        data: { active: !field.active }
+                                      });
+                                    }}
+                                    disabled={updateEvaluationFieldMutation.isPending}
+                                    data-testid={`button-toggle-field-${field.technicalName}`}
+                                  >
+                                    {field.active ? <XCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-8">
+                            No hay campos configurados para este paso. Haz clic en "Agregar Campo" para crear uno.
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">Solo los administradores pueden configurar campos de evaluación</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Field Edit/Create Dialog */}
+          <Dialog open={editingField !== null || evaluationFieldForm.formState.isDirty} onOpenChange={(open) => {
+            if (!open) {
+              setEditingField(null);
+              evaluationFieldForm.reset();
+            }
+          }}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingField ? 'Editar Campo' : 'Crear Nuevo Campo'}</DialogTitle>
+                <DialogDescription>
+                  {editingField ? 'Modifica los detalles del campo' : 'Configura un nuevo campo de evaluación'}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...evaluationFieldForm}>
+                <form onSubmit={evaluationFieldForm.handleSubmit((data) => {
+                  if (editingField) {
+                    updateEvaluationFieldMutation.mutate({ id: editingField.id, data });
+                  } else {
+                    createEvaluationFieldMutation.mutate(data);
+                  }
+                })} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <FormField
+                      control={evaluationFieldForm.control}
+                      name="step"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Paso</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!!editingField}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-field-step">
+                                <SelectValue placeholder="Selecciona paso" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="availability">Disponibilidad</SelectItem>
+                              <SelectItem value="quality">Calidad</SelectItem>
+                              <SelectItem value="prices">Precios</SelectItem>
+                              <SelectItem value="incidents">Incidentes</SelectItem>
+                              <SelectItem value="custom">Campos Personalizados</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={evaluationFieldForm.control}
+                      name="fieldType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Campo</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-field-type">
+                                <SelectValue placeholder="Selecciona tipo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="text">Texto</SelectItem>
+                              <SelectItem value="number">Número</SelectItem>
+                              <SelectItem value="select">Selección</SelectItem>
+                              <SelectItem value="multiselect">Selección Múltiple</SelectItem>
+                              <SelectItem value="checkbox">Checkbox</SelectItem>
+                              <SelectItem value="textarea">Área de Texto</SelectItem>
+                              <SelectItem value="photo">Foto</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={evaluationFieldForm.control}
+                    name="technicalName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre Técnico</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="ej: hasPriceTag" 
+                            data-testid="input-field-technical-name" 
+                            disabled={!!editingField}
+                            {...field} 
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Debe empezar con minúscula y solo contener letras/números sin espacios (camelCase)
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={evaluationFieldForm.control}
+                    name="label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Etiqueta</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ej: ¿Tiene etiqueta de precio?" data-testid="input-field-label" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={evaluationFieldForm.control}
+                    name="options"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Opciones (para select/multiselect)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ej: Sí,No,Parcial" data-testid="input-field-options" {...field} />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Separar opciones con comas. Solo necesario para campos tipo select/multiselect
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <FormField
+                      control={evaluationFieldForm.control}
+                      name="order"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Orden</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="0" 
+                              data-testid="input-field-order" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="space-y-4">
+                      <FormField
+                        control={evaluationFieldForm.control}
+                        name="required"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2 space-y-0">
+                            <FormControl>
+                              <Checkbox 
+                                checked={field.value} 
+                                onCheckedChange={field.onChange}
+                                data-testid="checkbox-field-required"
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0">Campo Requerido</FormLabel>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={evaluationFieldForm.control}
+                        name="active"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2 space-y-0">
+                            <FormControl>
+                              <Checkbox 
+                                checked={field.value} 
+                                onCheckedChange={field.onChange}
+                                data-testid="checkbox-field-active"
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0">Campo Activo</FormLabel>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingField(null);
+                        evaluationFieldForm.reset();
+                      }}
+                      data-testid="button-cancel-field"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={createEvaluationFieldMutation.isPending || updateEvaluationFieldMutation.isPending}
+                      data-testid="button-save-field"
+                    >
+                      {(createEvaluationFieldMutation.isPending || updateEvaluationFieldMutation.isPending) 
+                        ? 'Guardando...' 
+                        : editingField ? 'Actualizar' : 'Crear'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* PERMISSIONS TAB - Placeholder */}
