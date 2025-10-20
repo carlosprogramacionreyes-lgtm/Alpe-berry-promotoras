@@ -8,6 +8,33 @@ Berry Quality Inspector is a mobile-first field evaluation system designed for b
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (October 20, 2025)
+
+### Camera Photo Input Enhancement
+- **Feature:** Added camera buttons to all photo fields in the evaluation workflow
+- **Implementation:** New `CameraPhotoInput` component with:
+  - Camera icon button that triggers device camera (mobile) or file picker (desktop)
+  - Manual URL input option as alternative
+  - Image preview with thumbnail display
+  - Clear button to remove selected photos
+  - Base64 encoding for captured images
+  - HTML5 file input with `capture="environment"` for rear camera access
+- **Affected Steps:**
+  - Step 2 (Availability): Area Photo field
+  - Step 3 (Quality): Product Photo field
+  - Step 4 (Prices): Price Tag Photo field
+- **UX Improvements:**
+  - All photos remain optional
+  - Users can choose between camera capture or URL entry
+  - Instant preview of captured/selected images
+  - Mobile-optimized for field work
+
+### Previous Updates
+- Evaluation completion bug fixes (apiRequest parameter order, data type validation)
+- Incidents logic enhancement with "No incidents / Everything OK" mutual exclusion
+- Location options expanded (added "Bodega" and "Góndola")
+- Form state cleanup (removed deprecated POP material fields)
+
 ## System Architecture
 
 ### Frontend
