@@ -1,15 +1,428 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import passport from "passport";
+import { setupAuth, requireAuth, requireRole, hashPassword } from "./auth";
 import { storage } from "./storage";
+import { 
+  insertUserSchema, insertChainSchema, insertZoneSchema, 
+  insertStoreSchema, insertProductSchema, insertEvaluationSchema, 
+  insertIncidentSchema 
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  setupAuth(app);
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // Auth routes
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Error en el servidor" });
+      }
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Usuario o contraseña incorrectos" });
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error al iniciar sesión" });
+        }
+        return res.json({ user });
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error al cerrar sesión" });
+      }
+      res.json({ message: "Sesión cerrada" });
+    });
+  });
+
+  app.get("/api/auth/me", requireAuth, (req, res) => {
+    res.json({ user: req.user });
+  });
+
+  // User management routes
+  app.get("/api/users", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener usuarios" });
+    }
+  });
+
+  app.post("/api/users", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const hashedPass = await hashPassword(userData.password);
+      const user = await storage.createUser({ ...userData, password: hashedPass });
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear usuario" });
+    }
+  });
+
+  app.put("/api/users/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userData = req.body;
+      
+      if (userData.password) {
+        userData.password = await hashPassword(userData.password);
+      }
+      
+      const user = await storage.updateUser(id, userData);
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar usuario" });
+    }
+  });
+
+  app.delete("/api/users/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteUser(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+      res.json({ message: "Usuario eliminado" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar usuario" });
+    }
+  });
+
+  // Chain management routes
+  app.get("/api/chains", requireAuth, async (req, res) => {
+    try {
+      const chains = await storage.getAllChains();
+      res.json(chains);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener cadenas" });
+    }
+  });
+
+  app.post("/api/chains", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const chainData = insertChainSchema.parse(req.body);
+      const chain = await storage.createChain(chainData);
+      res.json(chain);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear cadena" });
+    }
+  });
+
+  app.delete("/api/chains/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteChain(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Cadena no encontrada" });
+      }
+      res.json({ message: "Cadena eliminada" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar cadena" });
+    }
+  });
+
+  // Zone management routes
+  app.get("/api/zones", requireAuth, async (req, res) => {
+    try {
+      const { chainId } = req.query;
+      const zones = chainId 
+        ? await storage.getZonesByChain(chainId as string)
+        : await storage.getAllZones();
+      res.json(zones);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener zonas" });
+    }
+  });
+
+  app.post("/api/zones", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const zoneData = insertZoneSchema.parse(req.body);
+      const zone = await storage.createZone(zoneData);
+      res.json(zone);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear zona" });
+    }
+  });
+
+  app.delete("/api/zones/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteZone(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Zona no encontrada" });
+      }
+      res.json({ message: "Zona eliminada" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar zona" });
+    }
+  });
+
+  // Store management routes
+  app.get("/api/stores", requireAuth, async (req, res) => {
+    try {
+      const { chainId, zoneId } = req.query;
+      let stores;
+      
+      if (zoneId) {
+        stores = await storage.getStoresByZone(zoneId as string);
+      } else if (chainId) {
+        stores = await storage.getStoresByChain(chainId as string);
+      } else {
+        stores = await storage.getAllStores();
+      }
+      
+      res.json(stores);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener tiendas" });
+    }
+  });
+
+  app.post("/api/stores", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const storeData = insertStoreSchema.parse(req.body);
+      const store = await storage.createStore(storeData);
+      res.json(store);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear tienda" });
+    }
+  });
+
+  app.put("/api/stores/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const store = await storage.updateStore(id, req.body);
+      if (!store) {
+        return res.status(404).json({ message: "Tienda no encontrada" });
+      }
+      res.json(store);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar tienda" });
+    }
+  });
+
+  app.delete("/api/stores/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteStore(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Tienda no encontrada" });
+      }
+      res.json({ message: "Tienda eliminada" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar tienda" });
+    }
+  });
+
+  // Product management routes
+  app.get("/api/products", requireAuth, async (req, res) => {
+    try {
+      const products = await storage.getAllProducts();
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener productos" });
+    }
+  });
+
+  app.post("/api/products", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(productData);
+      res.json(product);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear producto" });
+    }
+  });
+
+  app.put("/api/products/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.updateProduct(id, req.body);
+      if (!product) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+      res.json(product);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar producto" });
+    }
+  });
+
+  app.delete("/api/products/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteProduct(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+      res.json({ message: "Producto eliminado" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar producto" });
+    }
+  });
+
+  // Evaluation routes
+  app.get("/api/evaluations", requireAuth, async (req, res) => {
+    try {
+      const { userId, storeId } = req.query;
+      let evaluations;
+      
+      if (userId) {
+        evaluations = await storage.getEvaluationsByUser(userId as string);
+      } else if (storeId) {
+        evaluations = await storage.getEvaluationsByStore(storeId as string);
+      } else {
+        evaluations = await storage.getAllEvaluations();
+      }
+      
+      res.json(evaluations);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener evaluaciones" });
+    }
+  });
+
+  app.get("/api/evaluations/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const evaluation = await storage.getEvaluation(id);
+      if (!evaluation) {
+        return res.status(404).json({ message: "Evaluación no encontrada" });
+      }
+      res.json(evaluation);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener evaluación" });
+    }
+  });
+
+  app.post("/api/evaluations", requireAuth, async (req, res) => {
+    try {
+      const evaluationData = insertEvaluationSchema.parse({
+        ...req.body,
+        userId: req.user?.id,
+      });
+      const evaluation = await storage.createEvaluation(evaluationData);
+      res.json(evaluation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear evaluación" });
+    }
+  });
+
+  app.put("/api/evaluations/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const evaluation = await storage.updateEvaluation(id, req.body);
+      if (!evaluation) {
+        return res.status(404).json({ message: "Evaluación no encontrada" });
+      }
+      res.json(evaluation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar evaluación" });
+    }
+  });
+
+  // Incident routes
+  app.get("/api/incidents", requireAuth, async (req, res) => {
+    try {
+      const { evaluationId } = req.query;
+      if (!evaluationId) {
+        return res.status(400).json({ message: "Se requiere evaluationId" });
+      }
+      const incidents = await storage.getIncidentsByEvaluation(evaluationId as string);
+      res.json(incidents);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener incidencias" });
+    }
+  });
+
+  app.post("/api/incidents", requireAuth, async (req, res) => {
+    try {
+      const incidentData = insertIncidentSchema.parse(req.body);
+      const incident = await storage.createIncident(incidentData);
+      res.json(incident);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al crear incidencia" });
+    }
+  });
+
+  app.put("/api/incidents/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const incident = await storage.updateIncident(id, req.body);
+      if (!incident) {
+        return res.status(404).json({ message: "Incidencia no encontrada" });
+      }
+      res.json(incident);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar incidencia" });
+    }
+  });
+
+  app.delete("/api/incidents/:id", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteIncident(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Incidencia no encontrada" });
+      }
+      res.json({ message: "Incidencia eliminada" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar incidencia" });
+    }
+  });
+
+  // Dashboard stats routes
+  app.get("/api/stats/dashboard", requireAuth, async (req, res) => {
+    try {
+      const evaluations = await storage.getAllEvaluations();
+      const users = await storage.getAllUsers();
+      const stores = await storage.getAllStores();
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const visitsToday = evaluations.filter(e => {
+        const evalDate = new Date(e.createdAt);
+        evalDate.setHours(0, 0, 0, 0);
+        return evalDate.getTime() === today.getTime();
+      }).length;
+      
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+      const visitsThisMonth = evaluations.filter(e => {
+        const evalDate = new Date(e.createdAt);
+        return evalDate.getMonth() === currentMonth && evalDate.getFullYear() === currentYear;
+      }).length;
+      
+      const completedEvaluations = evaluations.filter(e => e.status === 'completed');
+      const activePromoters = users.filter(u => u.role === 'promotor' && u.active).length;
+      
+      const avgFreshness = completedEvaluations.length > 0
+        ? completedEvaluations.reduce((sum, e) => sum + (e.freshness || 0), 0) / completedEvaluations.length
+        : 0;
+      
+      res.json({
+        visitsToday,
+        visitsThisMonth,
+        activePromoters,
+        totalStores: stores.length,
+        completedEvaluations: completedEvaluations.length,
+        pendingEvaluations: evaluations.filter(e => e.status === 'in_progress').length,
+        avgQuality: avgFreshness.toFixed(1),
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener estadísticas" });
+    }
+  });
 
   const httpServer = createServer(app);
-
   return httpServer;
 }
