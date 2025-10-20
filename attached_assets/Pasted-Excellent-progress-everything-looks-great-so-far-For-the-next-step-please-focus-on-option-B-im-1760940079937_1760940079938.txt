@@ -1,0 +1,93 @@
+Excellent progress — everything looks great so far!
+
+For the next step, please focus on option B: implement case-insensitive validation across all modules (Users, Chains, Zones, Stores, and Products).
+
+This means all name and unique field comparisons should ignore uppercase and lowercase differences.
+Example: “Monterrey” and “monterrey” must be treated as the same value and prevented as duplicates.
+
+🔹 Next Step – Option A: Multiple Store Assignments
+
+Once option B is fully completed and tested, please move on to option A, implementing multiple store assignments inside the Configuration module.
+
+Requirements:
+
+Update the Assignments UI so each user can be assigned to multiple stores at once.
+
+Use checkboxes or a multi-select interface to allow admins to choose multiple stores in one action.
+
+When reopening the assignment modal, previously assigned stores must remain checked.
+
+Adding new stores should not remove existing ones.
+
+Keep the current visual style and layout of the module.
+
+Ensure all updates persist correctly in the user_store_assignments table.
+
+Show success/error toast notifications for each operation.
+
+After this feature is fully implemented and tested, continue to the next step.
+
+🔹 Final Step (for now) – Option C: “Data Base” Tab (Admin Only)
+
+After completing the multi-store assignments, add a new tab under the Configuration module called “Data Base”, visible only to users with admin or superadmin roles.
+
+Requirements:
+
+Add a button labeled “📥 Download database structure”.
+
+When pressed, open a password modal before allowing the action.
+
+Message: “Enter the password to continue.”
+
+Valid password: Cari2230*
+
+If the password is correct:
+
+Generate a .sql file containing only the database structure (no data).
+
+Automatically download the file in the admin’s browser.
+
+Save a copy on the server under /server/backups/.
+
+File name format example: estructura_bd_2025-10-20_18-45.sql.
+
+If the password is incorrect:
+
+Show: “❌ Incorrect password. Backup not generated.”
+
+If completed successfully:
+
+Show: “✅ Database structure downloaded successfully.”
+
+Download History:
+
+Use the backup_logs table to record every backup with:
+
+File name
+
+Admin user
+
+Date and time
+
+Display this history in a table below the button with columns: Date and Time | User | File.
+
+Restrictions:
+
+Only admin and superadmin roles can view and use this tab.
+
+Only export the structure — no data.
+
+Files must remain stored locally under /server/backups/ for SSH/SFTP access.
+
+Design:
+
+Keep the same visual style as the current Configuration panel.
+
+Add a database icon in the sidebar.
+
+Display the history in a clean Card or DataTable component, with pagination if needed.
+
+✅ Development order:
+1️⃣ Complete the case-insensitive validation (B)
+2️⃣ Implement multiple store assignments (A)
+3️⃣ Add the “Data Base” backup tab (C)

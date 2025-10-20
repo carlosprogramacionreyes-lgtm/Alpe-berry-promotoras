@@ -57,6 +57,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
+      
+      const existingUser = await storage.findUserByUsernameCaseInsensitive(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Ya existe un usuario con ese nombre de usuario" });
+      }
+      
       const hashedPass = await hashPassword(userData.password);
       const user = await storage.createUser({ ...userData, password: hashedPass });
       const { password, ...userWithoutPassword } = user;
@@ -70,6 +76,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userData = req.body;
+      
+      if (userData.username) {
+        const existingUser = await storage.findUserByUsernameCaseInsensitive(userData.username, id);
+        if (existingUser) {
+          return res.status(400).json({ message: "Ya existe un usuario con ese nombre de usuario" });
+        }
+      }
       
       if (userData.password) {
         userData.password = await hashPassword(userData.password);
@@ -112,6 +125,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chains", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const chainData = insertChainSchema.parse(req.body);
+      
+      const existingChain = await storage.findChainByNameCaseInsensitive(chainData.name);
+      if (existingChain) {
+        return res.status(400).json({ message: "Ya existe una cadena con ese nombre" });
+      }
+      
       const chain = await storage.createChain(chainData);
       res.json(chain);
     } catch (error: any) {
@@ -122,7 +141,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/chains/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const { id } = req.params;
-      const chain = await storage.updateChain(id, req.body);
+      const chainData = req.body;
+      
+      if (chainData.name) {
+        const existingChain = await storage.findChainByNameCaseInsensitive(chainData.name, id);
+        if (existingChain) {
+          return res.status(400).json({ message: "Ya existe una cadena con ese nombre" });
+        }
+      }
+      
+      const chain = await storage.updateChain(id, chainData);
       if (!chain) {
         return res.status(404).json({ message: "Cadena no encontrada" });
       }
@@ -161,6 +189,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/zones", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const zoneData = insertZoneSchema.parse(req.body);
+      
+      const existingZone = await storage.findZoneByNameCaseInsensitive(zoneData.name, zoneData.chainId);
+      if (existingZone) {
+        return res.status(400).json({ message: "Ya existe una zona con ese nombre en esta cadena" });
+      }
+      
       const zone = await storage.createZone(zoneData);
       res.json(zone);
     } catch (error: any) {
@@ -171,7 +205,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/zones/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const { id } = req.params;
-      const zone = await storage.updateZone(id, req.body);
+      const zoneData = req.body;
+      
+      if (zoneData.name && zoneData.chainId) {
+        const existingZone = await storage.findZoneByNameCaseInsensitive(zoneData.name, zoneData.chainId, id);
+        if (existingZone) {
+          return res.status(400).json({ message: "Ya existe una zona con ese nombre en esta cadena" });
+        }
+      }
+      
+      const zone = await storage.updateZone(id, zoneData);
       if (!zone) {
         return res.status(404).json({ message: "Zona no encontrada" });
       }
@@ -217,6 +260,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/stores", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const storeData = insertStoreSchema.parse(req.body);
+      
+      const existingStore = await storage.findStoreByNameCaseInsensitive(storeData.name);
+      if (existingStore) {
+        return res.status(400).json({ message: "Ya existe una tienda con ese nombre" });
+      }
+      
       const store = await storage.createStore(storeData);
       res.json(store);
     } catch (error: any) {
@@ -227,7 +276,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/stores/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const { id } = req.params;
-      const store = await storage.updateStore(id, req.body);
+      const storeData = req.body;
+      
+      if (storeData.name) {
+        const existingStore = await storage.findStoreByNameCaseInsensitive(storeData.name, id);
+        if (existingStore) {
+          return res.status(400).json({ message: "Ya existe una tienda con ese nombre" });
+        }
+      }
+      
+      const store = await storage.updateStore(id, storeData);
       if (!store) {
         return res.status(404).json({ message: "Tienda no encontrada" });
       }
@@ -263,6 +321,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/products", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const productData = insertProductSchema.parse(req.body);
+      
+      const existingProduct = await storage.findProductByNameCaseInsensitive(productData.name);
+      if (existingProduct) {
+        return res.status(400).json({ message: "Ya existe un producto con ese nombre" });
+      }
+      
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error: any) {
@@ -273,7 +337,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/products/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const { id } = req.params;
-      const product = await storage.updateProduct(id, req.body);
+      const productData = req.body;
+      
+      if (productData.name) {
+        const existingProduct = await storage.findProductByNameCaseInsensitive(productData.name, id);
+        if (existingProduct) {
+          return res.status(400).json({ message: "Ya existe un producto con ese nombre" });
+        }
+      }
+      
+      const product = await storage.updateProduct(id, productData);
       if (!product) {
         return res.status(404).json({ message: "Producto no encontrado" });
       }

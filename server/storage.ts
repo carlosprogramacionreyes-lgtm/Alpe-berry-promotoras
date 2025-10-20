@@ -10,13 +10,14 @@ import {
   type Evaluation, type InsertEvaluation,
   type Incident, type InsertIncident,
 } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  findUserByUsernameCaseInsensitive(username: string, excludeId?: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: string): Promise<boolean>;
@@ -25,6 +26,7 @@ export interface IStorage {
   // Chains
   getChain(id: string): Promise<Chain | undefined>;
   getChainByName(name: string): Promise<Chain | undefined>;
+  findChainByNameCaseInsensitive(name: string, excludeId?: string): Promise<Chain | undefined>;
   createChain(chain: InsertChain): Promise<Chain>;
   updateChain(id: string, chain: Partial<InsertChain>): Promise<Chain | undefined>;
   deleteChain(id: string): Promise<boolean>;
@@ -33,6 +35,7 @@ export interface IStorage {
   // Zones
   getZone(id: string): Promise<Zone | undefined>;
   getZonesByChain(chainId: string): Promise<Zone[]>;
+  findZoneByNameCaseInsensitive(name: string, chainId: string, excludeId?: string): Promise<Zone | undefined>;
   createZone(zone: InsertZone): Promise<Zone>;
   updateZone(id: string, zone: Partial<InsertZone>): Promise<Zone | undefined>;
   deleteZone(id: string): Promise<boolean>;
@@ -42,6 +45,7 @@ export interface IStorage {
   getStore(id: string): Promise<Store | undefined>;
   getStoresByZone(zoneId: string): Promise<Store[]>;
   getStoresByChain(chainId: string): Promise<Store[]>;
+  findStoreByNameCaseInsensitive(name: string, excludeId?: string): Promise<Store | undefined>;
   createStore(store: InsertStore): Promise<Store>;
   updateStore(id: string, store: Partial<InsertStore>): Promise<Store | undefined>;
   deleteStore(id: string): Promise<boolean>;
@@ -49,6 +53,7 @@ export interface IStorage {
 
   // Products
   getProduct(id: string): Promise<Product | undefined>;
+  findProductByNameCaseInsensitive(name: string, excludeId?: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
   deleteProduct(id: string): Promise<boolean>;
@@ -96,6 +101,16 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async findUserByUsernameCaseInsensitive(username: string, excludeId?: string): Promise<User | undefined> {
+    let query = db.select().from(users).where(ilike(users.username, username));
+    if (excludeId) {
+      const result = await query;
+      return result.find(u => u.id !== excludeId);
+    }
+    const result = await query.limit(1);
+    return result[0];
+  }
+
   async createUser(user: InsertUser): Promise<User> {
     const result = await db.insert(users).values(user).returning();
     return result[0];
@@ -126,6 +141,16 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async findChainByNameCaseInsensitive(name: string, excludeId?: string): Promise<Chain | undefined> {
+    let query = db.select().from(chains).where(ilike(chains.name, name));
+    if (excludeId) {
+      const result = await query;
+      return result.find(c => c.id !== excludeId);
+    }
+    const result = await query.limit(1);
+    return result[0];
+  }
+
   async createChain(chain: InsertChain): Promise<Chain> {
     const result = await db.insert(chains).values(chain).returning();
     return result[0];
@@ -153,6 +178,21 @@ export class DbStorage implements IStorage {
 
   async getZonesByChain(chainId: string): Promise<Zone[]> {
     return await db.select().from(zones).where(eq(zones.chainId, chainId)).orderBy(zones.name);
+  }
+
+  async findZoneByNameCaseInsensitive(name: string, chainId: string, excludeId?: string): Promise<Zone | undefined> {
+    let query = db.select().from(zones).where(
+      and(
+        ilike(zones.name, name),
+        eq(zones.chainId, chainId)
+      )
+    );
+    if (excludeId) {
+      const result = await query;
+      return result.find(z => z.id !== excludeId);
+    }
+    const result = await query.limit(1);
+    return result[0];
   }
 
   async createZone(zone: InsertZone): Promise<Zone> {
@@ -188,6 +228,16 @@ export class DbStorage implements IStorage {
     return await db.select().from(stores).where(eq(stores.chainId, chainId)).orderBy(stores.name);
   }
 
+  async findStoreByNameCaseInsensitive(name: string, excludeId?: string): Promise<Store | undefined> {
+    let query = db.select().from(stores).where(ilike(stores.name, name));
+    if (excludeId) {
+      const result = await query;
+      return result.find(s => s.id !== excludeId);
+    }
+    const result = await query.limit(1);
+    return result[0];
+  }
+
   async createStore(store: InsertStore): Promise<Store> {
     const result = await db.insert(stores).values(store).returning();
     return result[0];
@@ -210,6 +260,16 @@ export class DbStorage implements IStorage {
   // Products
   async getProduct(id: string): Promise<Product | undefined> {
     const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    return result[0];
+  }
+
+  async findProductByNameCaseInsensitive(name: string, excludeId?: string): Promise<Product | undefined> {
+    let query = db.select().from(products).where(ilike(products.name, name));
+    if (excludeId) {
+      const result = await query;
+      return result.find(p => p.id !== excludeId);
+    }
+    const result = await query.limit(1);
     return result[0];
   }
 
