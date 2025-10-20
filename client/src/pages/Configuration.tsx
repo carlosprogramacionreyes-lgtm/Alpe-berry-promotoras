@@ -1246,6 +1246,28 @@ export default function Configuration() {
                       )}
                     />
                   </div>
+                  <FormField
+                    control={storeForm.control}
+                    name="geofenceRadius"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Radio de geovalla (metros)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="100" 
+                            data-testid="input-store-geofence" 
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-muted-foreground">
+                          Distancia máxima permitida para validación GPS (por defecto: 100m)
+                        </p>
+                      </FormItem>
+                    )}
+                  />
                   <Button type="submit" disabled={createStoreMutation.isPending} data-testid="button-create-store">
                     {createStoreMutation.isPending ? 'Creando...' : 'Crear Tienda'}
                   </Button>
@@ -2190,6 +2212,29 @@ export default function Configuration() {
                     )}
                   />
                 </div>
+                <FormField
+                  control={storeForm.control}
+                  name="geofenceRadius"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Radio de geovalla (metros)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="100"
+                          data-testid="input-edit-store-geofence"
+                          {...field}
+                          defaultValue={editingStore.geofenceRadius || 100}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-xs text-muted-foreground">
+                        Distancia máxima permitida para validación GPS (por defecto: 100m)
+                      </p>
+                    </FormItem>
+                  )}
+                />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setEditingStore(null)}>
                     Cancelar
