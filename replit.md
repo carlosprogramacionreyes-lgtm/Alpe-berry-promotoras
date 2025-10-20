@@ -10,6 +10,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 20, 2025)
 
+### Configurable Geofence Radius
+- **Feature:** Store-specific geofence radius configuration for GPS validation
+- **Access:** Supervisors and Administrators only
+- **Implementation:**
+  - Added `geofenceRadius` field to stores table (integer, default: 100 meters)
+  - Configuration → Tiendas form includes "Radio de geovalla (metros)" field
+  - Available in both create and edit store dialogs
+  - Helper text guides users on purpose and default value
+- **GPS Validation Logic:**
+  - New Visit workflow uses dynamic `store.geofenceRadius` value
+  - Falls back to 100 meters if not configured
+  - Distance check: `inRange = distance <= (store.geofenceRadius || 100)`
+- **Use Cases:**
+  - Urban stores: Smaller radius (50-100m) for precise validation
+  - Rural stores: Larger radius (200-500m) for flexibility
+  - Custom scenarios: Adjustable per store needs
+
 ### Camera Photo Input Enhancement
 - **Feature:** Added camera buttons to all photo fields in the evaluation workflow
 - **Implementation:** New `CameraPhotoInput` component with:
