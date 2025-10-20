@@ -56,6 +56,7 @@ export interface IStorage {
 
   // Store Assignments
   assignUserToStore(assignment: InsertStoreAssignment): Promise<StoreAssignment>;
+  getAllStoreAssignments(): Promise<any[]>;
   getStoreAssignmentsByUser(userId: string): Promise<any[]>;
   getStoreAssignmentsByStore(storeId: string): Promise<any[]>;
   getUserStores(userId: string): Promise<Store[]>;
@@ -235,6 +236,17 @@ export class DbStorage implements IStorage {
   async assignUserToStore(assignment: InsertStoreAssignment): Promise<StoreAssignment> {
     const result = await db.insert(storeAssignments).values(assignment).returning();
     return result[0];
+  }
+
+  async getAllStoreAssignments(): Promise<any[]> {
+    const result = await db
+      .select({
+        assignment: storeAssignments,
+        store: stores,
+      })
+      .from(storeAssignments)
+      .innerJoin(stores, eq(storeAssignments.storeId, stores.id));
+    return result;
   }
 
   async getStoreAssignmentsByUser(userId: string): Promise<any[]> {

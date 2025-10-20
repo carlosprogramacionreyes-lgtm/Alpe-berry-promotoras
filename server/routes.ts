@@ -311,7 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(assignments);
       }
       
-      res.status(400).json({ message: "Se requiere userId o storeId" });
+      // Get all assignments when no filter is provided
+      const allAssignments = await storage.getAllStoreAssignments();
+      res.json(allAssignments);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener asignaciones" });
     }
