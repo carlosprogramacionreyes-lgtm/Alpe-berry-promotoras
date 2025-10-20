@@ -1,12 +1,12 @@
 import { db } from "./db";
 import { users, chains, zones, stores, products } from "@shared/schema";
-import { hash } from "bcryptjs";
+import { hashPassword } from "./auth";
 
 async function seed() {
   console.log("Seeding database...");
 
   // Create admin user
-  const hashedPassword = await hash("admin123", 10);
+  const hashedPassword = await hashPassword("admin123");
   const [admin] = await db.insert(users).values({
     username: "superadmin",
     email: "admin@admin.com",
@@ -17,7 +17,7 @@ async function seed() {
   console.log("Created admin user:", admin.username);
 
   // Create promoter user
-  const promoterPassword = await hash("promoter123", 10);
+  const promoterPassword = await hashPassword("promoter123");
   const [promoter] = await db.insert(users).values({
     username: "carlos",
     email: "admin@test.com",
@@ -28,7 +28,7 @@ async function seed() {
   console.log("Created promoter user:", promoter.username);
 
   // Create another promoter
-  const promoter2Password = await hash("lucio123", 10);
+  const promoter2Password = await hashPassword("lucio123");
   const [promoter2] = await db.insert(users).values({
     username: "lucio",
     email: "lucio@gmail.com.mx",
