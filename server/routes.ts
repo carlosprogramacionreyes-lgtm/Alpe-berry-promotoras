@@ -578,6 +578,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database tables routes
+  app.get("/api/database/tables", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
+    try {
+      const tables = await storage.getDatabaseTables();
+      res.json(tables);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener tablas de la base de datos" });
+    }
+  });
+
   // Database backup route
   app.post("/api/database/backup", requireAuth, requireRole("admin", "supervisor"), async (req, res) => {
     try {

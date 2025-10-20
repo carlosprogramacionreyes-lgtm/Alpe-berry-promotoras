@@ -88,6 +88,9 @@ export interface IStorage {
   getAllBackupLogs(): Promise<any[]>;
   createBackupLog(log: { filename: string; adminUserId: string; adminUsername: string }): Promise<any>;
   generateDatabaseStructureBackup(): Promise<string>;
+  
+  // Database tables info
+  getDatabaseTables(): Promise<any[]>;
 }
 
 export class DbStorage implements IStorage {
@@ -503,6 +506,37 @@ export class DbStorage implements IStorage {
     }
 
     return backupContent;
+  }
+
+  // Database tables info
+  async getDatabaseTables(): Promise<any[]> {
+    const result = await db.execute(sql`
+      SELECT 
+        schemaname,
+        tablename,
+        tableowner
+      FROM pg_catalog.pg_tables
+      WHERE schemaname = 'public'
+      ORDER BY tablename
+    `);
+
+    const tablesWithDates: any[] = [];
+    
+    for (const table of result.rows as any[]) {
+      const creationResult = await db.execute(sql`
+        SELECT 
+          obj_description((quote_ident(${table.schemaname}) || '.' || quote_ident(${table.tablename}))::regclass) as comment
+      `);
+      
+      tablesWithDates.push({
+        name: table.tablename,
+        schema: table.schemaname,
+        owner: table.tableowner,
+        comment: (creationResult.rows[0] as any)?.comment || null
+      });
+    }
+
+    return tablesWithDates;
   }
 }
 

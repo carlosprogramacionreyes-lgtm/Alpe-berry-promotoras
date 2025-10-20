@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X, Database, Download } from 'lucide-react';
+import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash, Plus, X, Database, Download, Table2 } from 'lucide-react';
 import type { User, Chain, Zone, Store as StoreType, Product } from '@shared/schema';
 
 interface AuthUser {
@@ -121,6 +121,12 @@ export default function Configuration() {
     enabled: currentUser?.role === 'admin' || currentUser?.role === 'supervisor',
   });
 
+  // Database tables query
+  const dbTablesQuery = useQuery<any[]>({ 
+    queryKey: ['/api/database/tables'],
+    enabled: currentUser?.role === 'admin' || currentUser?.role === 'supervisor',
+  });
+
   // Promoters query (filtered users with promoter role)
   const promotersQuery = useQuery<User[]>({ 
     queryKey: ['/api/users'],
@@ -208,6 +214,7 @@ export default function Configuration() {
   const [isBackupPasswordDialogOpen, setIsBackupPasswordDialogOpen] = useState(false);
   const [backupPassword, setBackupPassword] = useState("");
   const [backupPasswordError, setBackupPasswordError] = useState("");
+  const [tableSearchFilter, setTableSearchFilter] = useState("");
 
   // Edit state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -1753,6 +1760,83 @@ export default function Configuration() {
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           No hay respaldos registrados
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Table2 className="w-5 h-5 text-primary" />
+                  Tablas de la Base de Datos
+                </CardTitle>
+                <CardDescription>Listado de todas las tablas en el esquema público</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Buscar tabla..."
+                      value={tableSearchFilter}
+                      onChange={(e) => setTableSearchFilter(e.target.value)}
+                      className="max-w-sm"
+                      data-testid="input-search-table"
+                    />
+                  </div>
+
+                  {dbTablesQuery.isLoading ? (
+                    <div className="text-center py-8">
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ) : (
+                    <div>
+                      {dbTablesQuery.data && dbTablesQuery.data.length > 0 ? (
+                        <div className="border rounded-md">
+                          <table className="w-full">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                <th className="text-left p-2 text-sm font-medium">🗂️ Tabla</th>
+                                <th className="text-left p-2 text-sm font-medium">Esquema</th>
+                                <th className="text-left p-2 text-sm font-medium">Propietario</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {dbTablesQuery.data
+                                .filter((table: any) => 
+                                  !tableSearchFilter || 
+                                  table.name.toLowerCase().includes(tableSearchFilter.toLowerCase())
+                                )
+                                .map((table: any, index: number) => (
+                                  <tr key={table.name} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                                    <td className="p-2 text-sm font-mono" data-testid={`text-table-name-${table.name}`}>
+                                      {table.name}
+                                    </td>
+                                    <td className="p-2 text-sm text-muted-foreground" data-testid={`text-table-schema-${table.name}`}>
+                                      {table.schema}
+                                    </td>
+                                    <td className="p-2 text-sm text-muted-foreground" data-testid={`text-table-owner-${table.name}`}>
+                                      {table.owner}
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                          {tableSearchFilter && dbTablesQuery.data.filter((table: any) => 
+                            table.name.toLowerCase().includes(tableSearchFilter.toLowerCase())
+                          ).length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No se encontraron tablas que coincidan con "{tableSearchFilter}"
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No hay tablas en el esquema público
                         </p>
                       )}
                     </div>
