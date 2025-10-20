@@ -26,6 +26,7 @@ export interface IStorage {
   getChain(id: string): Promise<Chain | undefined>;
   getChainByName(name: string): Promise<Chain | undefined>;
   createChain(chain: InsertChain): Promise<Chain>;
+  updateChain(id: string, chain: Partial<InsertChain>): Promise<Chain | undefined>;
   deleteChain(id: string): Promise<boolean>;
   getAllChains(): Promise<Chain[]>;
 
@@ -33,6 +34,7 @@ export interface IStorage {
   getZone(id: string): Promise<Zone | undefined>;
   getZonesByChain(chainId: string): Promise<Zone[]>;
   createZone(zone: InsertZone): Promise<Zone>;
+  updateZone(id: string, zone: Partial<InsertZone>): Promise<Zone | undefined>;
   deleteZone(id: string): Promise<boolean>;
   getAllZones(): Promise<Zone[]>;
 
@@ -126,6 +128,11 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async updateChain(id: string, chain: Partial<InsertChain>): Promise<Chain | undefined> {
+    const result = await db.update(chains).set(chain).where(eq(chains.id, id)).returning();
+    return result[0];
+  }
+
   async deleteChain(id: string): Promise<boolean> {
     const result = await db.delete(chains).where(eq(chains.id, id));
     return result.rowCount !== null && result.rowCount > 0;
@@ -147,6 +154,11 @@ export class DbStorage implements IStorage {
 
   async createZone(zone: InsertZone): Promise<Zone> {
     const result = await db.insert(zones).values(zone).returning();
+    return result[0];
+  }
+
+  async updateZone(id: string, zone: Partial<InsertZone>): Promise<Zone | undefined> {
+    const result = await db.update(zones).set(zone).where(eq(zones.id, id)).returning();
     return result[0];
   }
 

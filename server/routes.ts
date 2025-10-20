@@ -119,6 +119,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/chains/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const chain = await storage.updateChain(id, req.body);
+      if (!chain) {
+        return res.status(404).json({ message: "Cadena no encontrada" });
+      }
+      res.json(chain);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar cadena" });
+    }
+  });
+
   app.delete("/api/chains/:id", requireAuth, requireRole("admin"), async (req, res) => {
     try {
       const { id } = req.params;
@@ -152,6 +165,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(zone);
     } catch (error: any) {
       res.status(400).json({ message: error.message || "Error al crear zona" });
+    }
+  });
+
+  app.put("/api/zones/:id", requireAuth, requireRole("admin"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const zone = await storage.updateZone(id, req.body);
+      if (!zone) {
+        return res.status(404).json({ message: "Zona no encontrada" });
+      }
+      res.json(zone);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Error al actualizar zona" });
     }
   });
 
