@@ -42,17 +42,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-r from-[hsl(270,70%,60%)] via-[hsl(240,70%,55%)] to-[hsl(180,60%,50%)]">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-r from-[hsl(265,85%,57%)] via-[hsl(217,91%,60%)] to-[hsl(142,76%,45%)]">
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[hsl(265,85%,57%)] to-[hsl(265,85%,47%)] flex items-center justify-center shadow-lg">
               <Grape className="w-9 h-9 text-white" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-[hsl(270,70%,60%)] via-primary to-[hsl(240,70%,55%)] bg-clip-text text-transparent font-bold">Berry Quality Inspector</CardTitle>
-            <CardDescription className="text-muted-foreground">Sistema de Inspección de Calidad</CardDescription>
+            <CardTitle className="text-2xl bg-gradient-to-r from-[hsl(265,85%,57%)] via-[hsl(217,91%,60%)] to-[hsl(142,76%,45%)] bg-clip-text text-transparent font-bold">Berry Quality Inspector</CardTitle>
+            <CardDescription className="text-muted-foreground mt-2">Sistema de Inspección de Calidad</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

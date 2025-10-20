@@ -26,21 +26,21 @@
 
   --card-border: 220 13% 88%;
 
-  --sidebar: 0 0% 96%;
+  --sidebar: 265 85% 57%;
 
-  --sidebar-foreground: 222 47% 11%;
+  --sidebar-foreground: 0 0% 100%;
 
-  --sidebar-border: 220 13% 85%;
+  --sidebar-border: 265 85% 47%;
 
-  --sidebar-primary: 265 80% 60%;
+  --sidebar-primary: 265 85% 67%;
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  --sidebar-accent: 210 40% 94%;
+  --sidebar-accent: 265 70% 65%;
 
-  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-accent-foreground: 0 0% 100%;
 
-  --sidebar-ring: 265 80% 60%;
+  --sidebar-ring: 265 85% 77%;
 
   --popover: 0 0% 95%;
 
@@ -48,7 +48,7 @@
 
   --popover-border: 220 13% 82%;
 
-  --primary: 265 80% 60%;
+  --primary: 265 85% 57%;
 
   --primary-foreground: 0 0% 100%;
 
@@ -69,17 +69,19 @@
   --destructive-foreground: 0 0% 100%;
 
   --input: 220 13% 85%;
-  --ring: 265 80% 60%;
-  --chart-1: 265 80% 60%;
-  --chart-2: 142 71% 45%;
-  --chart-3: 240 70% 55%;
-  --chart-4: 180 60% 50%;
-  --chart-5: 340 82% 52%;
+  --ring: 265 85% 57%;
+  --chart-1: 265 85% 57%;
+  --chart-2: 142 76% 45%;
+  --chart-3: 217 91% 60%;
+  --chart-4: 180 65% 50%;
+  --chart-5: 25 95% 53%;
   
   /* Gradient colors */
-  --gradient-purple: 270 70% 60%;
-  --gradient-blue: 240 70% 55%;
-  --gradient-teal: 180 60% 50%;
+  --gradient-purple: 265 85% 57%;
+  --gradient-purple-light: 265 85% 67%;
+  --gradient-blue: 217 91% 60%;
+  --gradient-green: 142 76% 45%;
+  --gradient-teal: 173 80% 40%;
 
   --font-sans: Open Sans, sans-serif;
   --font-serif: Georgia, serif;
@@ -149,21 +151,21 @@
 
   --card-border: 215 25% 30%;
 
-  --sidebar: 220 30% 20%;
+  --sidebar: 265 85% 27%;
 
   --sidebar-foreground: 0 0% 98%;
 
-  --sidebar-border: 215 25% 33%;
+  --sidebar-border: 265 85% 37%;
 
-  --sidebar-primary: 265 80% 60%;
+  --sidebar-primary: 265 85% 67%;
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  --sidebar-accent: 217 20% 24%;
+  --sidebar-accent: 265 70% 35%;
 
   --sidebar-accent-foreground: 0 0% 98%;
 
-  --sidebar-ring: 265 80% 60%;
+  --sidebar-ring: 265 85% 77%;
 
   --popover: 220 30% 22%;
 
@@ -171,7 +173,7 @@
 
   --popover-border: 215 25% 35%;
 
-  --primary: 265 80% 60%;
+  --primary: 265 85% 57%;
 
   --primary-foreground: 0 0% 100%;
 
@@ -192,17 +194,19 @@
   --destructive-foreground: 0 0% 100%;
 
   --input: 215 25% 35%;
-  --ring: 265 80% 60%;
-  --chart-1: 265 80% 70%;
-  --chart-2: 142 71% 55%;
-  --chart-3: 240 70% 65%;
-  --chart-4: 180 60% 60%;
-  --chart-5: 340 82% 62%;
+  --ring: 265 85% 57%;
+  --chart-1: 265 85% 67%;
+  --chart-2: 142 76% 55%;
+  --chart-3: 217 91% 70%;
+  --chart-4: 180 65% 60%;
+  --chart-5: 25 95% 63%;
   
   /* Gradient colors */
-  --gradient-purple: 270 70% 60%;
-  --gradient-blue: 240 70% 55%;
-  --gradient-teal: 180 60% 50%;
+  --gradient-purple: 265 85% 57%;
+  --gradient-purple-light: 265 85% 67%;
+  --gradient-blue: 217 91% 60%;
+  --gradient-green: 142 76% 45%;
+  --gradient-teal: 173 80% 40%;
 
   --shadow-2xs: 0px 2px 0px 0px hsl(222 47% 11% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(222 47% 11% / 0.00);

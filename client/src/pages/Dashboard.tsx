@@ -70,14 +70,16 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(270,70%,60%)] via-primary to-[hsl(240,70%,55%)] bg-clip-text text-transparent mb-1">Bienvenido, {user.user?.name || user.user?.username}</h1>
-          <p className="text-sm text-muted-foreground capitalize">{user.user?.role}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Hoy</p>
-          <p className="text-sm font-medium text-foreground">{formattedDate}</p>
+      <div className="rounded-2xl bg-gradient-to-r from-[hsl(265,85%,57%)] via-[hsl(217,91%,60%)] to-[hsl(142,76%,45%)] p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-1">Bienvenido, {user.user?.name || user.user?.username}</h1>
+            <p className="text-sm text-white/80 capitalize">{user.user?.role}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-white/70">Hoy</p>
+            <p className="text-sm font-medium text-white">{formattedDate}</p>
+          </div>
         </div>
       </div>
 
@@ -97,29 +99,28 @@ export default function Dashboard() {
               value={stats?.visitsToday || 0} 
               subtitle="Evaluaciones de hoy"
               icon={MapPin}
-              iconColor="text-primary"
-              gradient
+              iconColor="text-[hsl(265,85%,57%)]"
             />
             <MetricCard 
               title="Promotores Activos" 
               value={stats?.activePromoters || 0} 
               subtitle="Total de promotores"
               icon={Users}
-              iconColor="text-chart-2"
+              iconColor="text-[hsl(142,76%,45%)]"
             />
             <MetricCard 
               title="Tiendas Registradas" 
               value={stats?.totalStores || 0} 
               subtitle="Tiendas activas"
               icon={Store}
-              iconColor="text-primary"
+              iconColor="text-[hsl(217,91%,60%)]"
             />
             <MetricCard 
               title="Visitas (Mes)" 
               value={stats?.visitsThisMonth || 0} 
               subtitle="Mes actual"
               icon={MapPin}
-              iconColor="text-chart-3"
+              iconColor="text-[hsl(25,95%,53%)]"
             />
           </div>
 
@@ -129,92 +130,98 @@ export default function Dashboard() {
               value={stats?.pendingEvaluations || 0} 
               subtitle="Requieren atención"
               icon={Clock}
-              iconColor="text-muted-foreground"
+              iconColor="text-[hsl(0,84%,60%)]"
             />
             <MetricCard 
               title="Evaluaciones (Mes)" 
               value={stats?.completedEvaluations || 0} 
               subtitle={`${stats?.visitsThisMonth || 0} totales`}
               icon={CheckCircle}
-              iconColor="text-chart-2"
-              gradient
+              iconColor="text-[hsl(142,76%,45%)]"
             />
             <MetricCard 
               title="Incidencias Pendientes" 
               value={0} 
               subtitle="0 Alta prioridad"
               icon={AlertTriangle}
-              iconColor="text-destructive"
+              iconColor="text-[hsl(25,95%,53%)]"
             />
             <MetricCard 
               title="Calidad Promedio" 
               value={`${stats?.avgQuality || '0.0'}/5`} 
               subtitle={parseFloat(stats?.avgQuality || '0') >= 3 ? 'Buena' : 'Regular'}
               icon={TrendingUp}
-              iconColor="text-chart-2"
+              iconColor="text-[hsl(265,85%,57%)]"
             />
           </div>
         </>
       )}
 
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <span>⚡</span>
+          Acciones Rápidas
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card 
+            className="bg-gradient-to-br from-[hsl(265,85%,57%)] to-[hsl(265,85%,47%)] text-white border-0 shadow-lg hover-elevate active-elevate-2 cursor-pointer"
+            onClick={() => setLocation('/visits')}
+            data-testid="button-new-visit"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Plus className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Nueva Visita</h3>
+                  <p className="text-sm text-white/80">Iniciar inspección en tienda</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-gradient-to-br from-[hsl(142,76%,45%)] to-[hsl(142,76%,35%)] text-white border-0 shadow-lg hover-elevate active-elevate-2 cursor-pointer"
+            onClick={() => setLocation('/visits')}
+            data-testid="button-my-visits"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Mis Visitas</h3>
+                  <p className="text-sm text-white/80">Ver historial y pendientes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-card border hover-elevate active-elevate-2 cursor-pointer shadow-sm"
+            onClick={() => setLocation('/reports')}
+            data-testid="button-reports"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-[hsl(217,91%,60%)]/10 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-[hsl(217,91%,60%)]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Reportes</h3>
+                  <p className="text-sm text-muted-foreground">Consultar estadísticas</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Acciones Rápidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3">
-            <Button 
-              className="w-full justify-start gap-2 h-auto py-4" 
-              onClick={() => setLocation('/visits')}
-              data-testid="button-new-visit"
-            >
-              <Plus className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Nueva Visita</div>
-                <div className="text-xs opacity-90">Iniciar inspección en tienda</div>
-              </div>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2 h-auto py-4" 
-              onClick={() => setLocation('/visits')}
-              data-testid="button-my-visits"
-            >
-              <MapPin className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Mis Visitas</div>
-                <div className="text-xs text-muted-foreground">Ver historial y pendientes</div>
-              </div>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2 h-auto py-4" 
-              onClick={() => setLocation('/reports')}
-              data-testid="button-reports"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Reportes</div>
-                <div className="text-xs text-muted-foreground">Consultar estadísticas</div>
-              </div>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2 h-auto py-4" 
-              onClick={() => setLocation('/config')}
-              data-testid="button-management"
-            >
-              <Settings className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Gestión</div>
-                <div className="text-xs text-muted-foreground">Administrar sistema</div>
-              </div>
-            </Button>
-          </CardContent>
-        </Card>
+        <div></div>
 
         <Card>
           <CardHeader>

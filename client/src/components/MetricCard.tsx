@@ -18,9 +18,11 @@ export default function MetricCard({
   iconColor = "text-primary",
   gradient = false 
 }: MetricCardProps) {
+  const iconBgColor = iconColor.replace('text-', 'bg-').replace(']', '/10]');
+  
   return (
     <Card 
-      className={`p-4 ${gradient ? 'bg-gradient-to-br from-[hsl(270,70%,60%)] via-primary to-[hsl(240,70%,55%)] text-white border-0 shadow-lg' : ''}`}
+      className={`p-4 hover-elevate ${gradient ? 'bg-gradient-to-br from-[hsl(265,85%,57%)] via-[hsl(217,91%,60%)] to-[hsl(142,76%,45%)] text-white border-0 shadow-lg' : 'shadow-sm'}`}
       data-testid={`card-metric-${title.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -37,7 +39,7 @@ export default function MetricCard({
             </p>
           )}
         </div>
-        <div className={`p-2 rounded-lg ${gradient ? 'bg-white/20' : 'bg-primary/10'}`}>
+        <div className={`p-2.5 rounded-xl ${gradient ? 'bg-white/20' : iconBgColor}`}>
           <Icon className={`w-5 h-5 ${gradient ? 'text-white' : iconColor}`} />
         </div>
       </div>
