@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/sidebar";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-const menuItems = [
-  { title: "Inicio", url: "/", icon: Home },
-  { title: "Visitas", url: "/visits", icon: MapPin },
-  { title: "Reportes", url: "/reports", icon: BarChart3 },
-  { title: "Configuración", url: "/config", icon: Settings },
+const allMenuItems = [
+  { title: "Inicio", url: "/", icon: Home, roles: ["promoter", "analyst", "supervisor", "admin"] },
+  { title: "Visitas", url: "/visits", icon: MapPin, roles: ["promoter", "analyst", "supervisor", "admin"] },
+  { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["analyst", "supervisor", "admin"] },
+  { title: "Configuración", url: "/config", icon: Settings, roles: ["supervisor", "admin"] },
 ];
 
 interface AuthUser {
@@ -39,6 +39,9 @@ export function AppSidebar() {
     queryKey: ['/api/auth/me'],
     retry: false,
   });
+
+  const userRole = user?.user?.role || 'promoter';
+  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
