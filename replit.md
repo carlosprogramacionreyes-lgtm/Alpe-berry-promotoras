@@ -14,12 +14,16 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
   - Chain (dropdown, updates zones dynamically)
   - Zone (dropdown, depends on selected chain)
   - Store (dropdown, depends on selected zone/chain)
-  - User (dropdown, locked for promoters to their own user)
+  - User (dropdown, role-aware behavior)
   - Product (dropdown, standard selection)
 - **Layout:** Redesigned to 3-row grid layout (Date Range | Chain | Zone // Store | User | Product // Apply | Clear buttons)
 - **Filter Dependencies:** Chain selection updates available zones → Zone selection updates available stores → Dynamic filtering without page reload
 - **User Controls:** "Aplicar Filtros" (purple primary button) and "Limpiar Filtros" (gray outline button)
-- **Role-Aware Behavior:** Promoters see their own user locked in the User filter; Analysts/Supervisors/Admins can select any promoter
+- **Role-Aware User Filter:**
+  - **Promoters:** Filter locked/disabled, displays ONLY promoter's own name (e.g., "Test Promoter (testpromoter)")
+  - **Analysts/Supervisors/Admins:** Filter enabled, shows "Todos los usuarios" option plus full list of all promoters
+  - Supports both 'promoter' and 'promotor' role spellings
+  - Fetches current user from /api/auth/me endpoint
 
 #### 2. Database Tab Enhancement
 - **New Section:** "Tablas de la Base de Datos" card displaying all PostgreSQL public schema tables
@@ -31,7 +35,7 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
   - Empty state when no tables found
   - "No se encontraron tablas" message when search returns no results
   - Clean table layout with emoji icon (🗂️) in header
-- **Access Control:** Visible only for admin and supervisor roles
+- **Access Control:** Visible only for Administrator role (Supervisor access removed for security)
 
 #### 3. Role-Based Navigation and Permissions
 - **Sidebar Navigation:** Dynamic menu items based on user role
@@ -41,7 +45,9 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
   - **Administrator:** Home, Visits, Reports, Configuration
 - **Implementation:** Menu items filtered by roles array in AppSidebar component
 - **Progressive Access:** Clear hierarchy (Promoter → Analyst → Supervisor → Administrator) with each level adding more capabilities
-- **Configuration Access:** Data Base tab within Configuration remains exclusive to admin/supervisor roles
+- **Configuration Access:**
+  - Standard tabs (Users, Chains, Zones, Stores, Products, Assignments): Supervisor and Administrator
+  - Data Base tab: Administrator only (restricted from Supervisor for security)
 
 ### October 2025 - Multi-Store Assignment Feature
 - **Feature:** Bulk store assignment for promoters with checkbox-based selection
