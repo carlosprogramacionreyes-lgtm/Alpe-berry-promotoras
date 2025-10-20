@@ -1,0 +1,169 @@
+Hi 👋
+Here are the remaining adjustments we need to implement for the New Visit workflow and the Configuration module.
+Please review all points carefully — these changes focus on completing missing features, fixing bugs, and improving visual consistency across the entire project.
+
+🧭 Step 0 – Direct Access
+
+When the user clicks “New Visit”, it should go directly to the store selection screen, skipping the chain selection step.
+
+The first visible screen should be “Select Store.”
+
+🍓 Step 1 – Product Selection
+
+Update the product selection interface to look more modern and visual, like the attached screenshots.
+
+Each product card must include:
+
+Product icon and color.
+
+Product name.
+
+“Berry Fresh” label.
+
+“Start Evaluation” button to continue.
+
+Display the cards in a clean, evenly spaced grid layout, responsive for desktop and mobile.
+
+📦 Step 2 – Availability
+
+Add the following missing options to the “Location” field:
+
+Storage (Bodega)
+
+Gondola (Góndola)
+
+In the “Area Photo” field:
+
+Add a small camera icon button 📷 to open the device’s camera and take a photo directly.
+
+Allow the user to continue even if no photo is taken (photo optional).
+
+Keep the same minimalist input field design.
+
+🌿 Step 3 – Quality
+
+In the “Product Photos (up to 3)” field:
+
+Add a small camera icon 📷 to open the device’s camera.
+
+Allow taking photos directly without manual upload.
+
+Photos remain optional — don’t block the next step if none are provided.
+
+💰 Step 4 – Prices & Promotions
+
+In the “Price Tag Photo” field:
+
+Add a small camera icon 📷 to open the device camera and take a photo directly.
+
+Make this field optional.
+
+Remove the “POP Material” checkbox and its conditional photo field — this step is no longer required.
+
+⚠️ Step 5 – Incidents
+
+Add a new option to the “Incident Type” field for cases when everything is fine:
+
+✅ “No incidents / Everything OK.”
+
+When this option is selected:
+
+Disable the “Severity,” “Action Required,” and “Photos” fields automatically.
+
+Allow the user to complete the visit normally without errors.
+
+Final list of incident types:
+
+Expired product
+
+Damaged packaging
+
+Missing promotion
+
+Aggressive competition
+
+Wrong price
+
+Out of stock
+
+Other
+
+✅ No incidents / Everything OK
+
+🧾 Current Issues
+
+When pressing “Complete”, the system currently throws an error and doesn’t finish the visit.
+
+It must save successfully and display the confirmation message:
+
+✅ “Evaluation completed and saved successfully.”
+
+🏬 Configuration → Stores
+
+The geofence field (geovalla) was not added.
+
+Add a new numeric field: “Geofence radius (meters)” in the store creation/edit form.
+
+Only Supervisors and Admins can edit this field.
+
+This value must be used as the GPS validation radius in the New Visit workflow.
+
+Example: 100, 200, 500 meters.
+
+⚙️ Configuration → Evaluations
+
+The “Evaluations” tab was not implemented yet.
+This module lets administrators configure which fields are visible and required for each evaluation step.
+
+The tab must include:
+
+5 sections (tabs):
+1️⃣ Availability
+2️⃣ Quality
+3️⃣ Prices
+4️⃣ Incidents
+5️⃣ Custom Fields
+
+Each section should list configurable fields with:
+
+Step name
+
+Technical name (unique key)
+
+Label (display text)
+
+Field type (text, number, select, checkbox, date, etc.)
+
+Options (in JSON format, for select fields)
+
+Required toggle
+
+Order number
+
+Status (Active/Inactive)
+
+Only Administrators can modify these fields.
+
+Include full CRUD operations (Add, Edit, Delete, Activate/Deactivate).
+
+Changing any setting should immediately affect the New Visit workflow form.
+
+🎨 UI & Visual Optimization
+
+Please optimize the spacing and layout across the entire project:
+
+Adjust margins, padding, and alignment for better visual balance.
+
+Ensure consistent spacing between inputs, buttons, and cards.
+
+Improve responsiveness and whitespace to make the app look cleaner and more professional.
+
+Maintain the current purple accent color and minimalist design aesthetic.
+
+🧩 Final Notes
+
+Keep the purple progress bar and “Step X of 5” indicator visible throughout the visit.
+
+Maintain smooth page transitions and mobile responsiveness.
+
+All updates must preserve the current clean, modern
