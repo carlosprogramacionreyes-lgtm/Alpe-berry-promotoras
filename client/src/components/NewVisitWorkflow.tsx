@@ -9,12 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Upload, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle2, Upload, AlertTriangle, X, Camera } from 'lucide-react';
 import type { Product, Store } from '@shared/schema';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import * as Icons from 'lucide-react';
+import { useRef } from 'react';
 
 interface NewVisitWorkflowProps {
   store: Store;
@@ -40,6 +41,112 @@ const stepNumbers = {
   'prices': 4,
   'incidents': 5
 };
+
+interface CameraPhotoInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  label: string;
+  testId: string;
+}
+
+function CameraPhotoInput({ value, onChange, label, testId }: CameraPhotoInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      onChange(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClear = () => {
+    onChange('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="border-2 border-dashed rounded-md p-4">
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+          data-testid={`${testId}-file-input`}
+        />
+
+        {/* Camera button and URL input */}
+        <div className="flex gap-2 items-start">
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={handleCameraClick}
+            className="shrink-0"
+            data-testid={`${testId}-camera-button`}
+          >
+            <Camera className="h-4 w-4" />
+          </Button>
+          
+          <div className="flex-1">
+            <Input
+              type="text"
+              placeholder="URL de la foto o usar cámara"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              data-testid={testId}
+            />
+          </div>
+
+          {value && (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={handleClear}
+              data-testid={`${testId}-clear-button`}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Preview */}
+        {value && (
+          <div className="mt-3">
+            <img
+              src={value}
+              alt="Preview"
+              className="max-h-32 rounded-md border"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground mt-2">
+          📷 Cámara | 🔗 URL | ✖️ Opcional
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function NewVisitWorkflow({ store, products, onCancel, onComplete }: NewVisitWorkflowProps) {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('product-selection');
@@ -362,22 +469,12 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="areaPhoto">Foto del área</Label>
-              <div className="border-2 border-dashed rounded-md p-6 text-center hover-elevate cursor-pointer">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">URL de la foto o arrastrar archivo (opcional)</p>
-                <Input
-                  id="areaPhoto"
-                  type="text"
-                  placeholder="https://... o cargar archivo"
-                  className="mt-2"
-                  value={formData.areaPhotoUrl}
-                  onChange={(e) => setFormData({ ...formData, areaPhotoUrl: e.target.value })}
-                  data-testid="input-area-photo"
-                />
-              </div>
-            </div>
+            <CameraPhotoInput
+              label="Foto del área (opcional)"
+              value={formData.areaPhotoUrl}
+              onChange={(value) => setFormData({ ...formData, areaPhotoUrl: value })}
+              testId="input-area-photo"
+            />
           </CardContent>
         </Card>
       )}
@@ -480,25 +577,12 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="qualityPhoto">Foto del producto (hasta 3) *</Label>
-              <div className="border-2 border-dashed rounded-md p-6 text-center hover-elevate cursor-pointer">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">URLs de fotos separadas por coma</p>
-                <Input
-                  id="qualityPhoto"
-                  type="text"
-                  placeholder="https://..."
-                  className="mt-2"
-                  value={formData.qualityPhotoUrl}
-                  onChange={(e) => setFormData({ ...formData, qualityPhotoUrl: e.target.value })}
-                  data-testid="input-quality-photo"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Clic en arrancar o adjuntar archivo
-                </p>
-              </div>
-            </div>
+            <CameraPhotoInput
+              label="Foto del producto (opcional)"
+              value={formData.qualityPhotoUrl}
+              onChange={(value) => setFormData({ ...formData, qualityPhotoUrl: value })}
+              testId="input-quality-photo"
+            />
           </CardContent>
         </Card>
       )}
@@ -597,21 +681,12 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="pricePhoto">Foto de etiqueta de precio (opcional)</Label>
-              <div className="border-2 border-dashed rounded-md p-6 text-center hover-elevate cursor-pointer">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <Input
-                  id="pricePhoto"
-                  type="text"
-                  placeholder="URL de la foto"
-                  className="mt-2"
-                  value={formData.pricePhotoUrl}
-                  onChange={(e) => setFormData({ ...formData, pricePhotoUrl: e.target.value })}
-                  data-testid="input-price-photo"
-                />
-              </div>
-            </div>
+            <CameraPhotoInput
+              label="Foto de etiqueta de precio (opcional)"
+              value={formData.pricePhotoUrl}
+              onChange={(value) => setFormData({ ...formData, pricePhotoUrl: value })}
+              testId="input-price-photo"
+            />
           </CardContent>
         </Card>
       )}
