@@ -227,7 +227,14 @@ export default function Configuration() {
 
   const createStoreMutation = useMutation({
     mutationFn: async (data: z.infer<typeof storeFormSchema>) => {
-      return await apiRequest('POST', '/api/stores', data);
+      const payload = {
+        ...data,
+        latitude: data.latitude && data.latitude.trim() !== '' ? data.latitude : undefined,
+        longitude: data.longitude && data.longitude.trim() !== '' ? data.longitude : undefined,
+        address: data.address && data.address.trim() !== '' ? data.address : undefined,
+        city: data.city && data.city.trim() !== '' ? data.city : undefined,
+      };
+      return await apiRequest('POST', '/api/stores', payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/stores'] });
@@ -459,7 +466,7 @@ export default function Configuration() {
                               size="icon" 
                               variant="ghost" 
                               onClick={() => deleteUserMutation.mutate(user.id)}
-                              disabled={deleteUserMutation.isPending}
+                              disabled={deleteUserMutation.isPending && deleteUserMutation.variables === user.id}
                               data-testid={`button-delete-user-${user.id}`}
                             >
                               <Trash className="w-4 h-4 text-destructive" />
@@ -560,7 +567,7 @@ export default function Configuration() {
                               size="icon" 
                               variant="ghost" 
                               onClick={() => deleteChainMutation.mutate(chain.id)}
-                              disabled={deleteChainMutation.isPending}
+                              disabled={deleteChainMutation.isPending && deleteChainMutation.variables === chain.id}
                               data-testid={`button-delete-chain-${chain.id}`}
                             >
                               <Trash className="w-4 h-4 text-destructive" />
@@ -685,7 +692,7 @@ export default function Configuration() {
                               size="icon" 
                               variant="ghost" 
                               onClick={() => deleteZoneMutation.mutate(zone.id)}
-                              disabled={deleteZoneMutation.isPending}
+                              disabled={deleteZoneMutation.isPending && deleteZoneMutation.variables === zone.id}
                               data-testid={`button-delete-zone-${zone.id}`}
                             >
                               <Trash className="w-4 h-4 text-destructive" />
@@ -849,7 +856,7 @@ export default function Configuration() {
                               size="icon" 
                               variant="ghost" 
                               onClick={() => deleteStoreMutation.mutate(store.id)}
-                              disabled={deleteStoreMutation.isPending}
+                              disabled={deleteStoreMutation.isPending && deleteStoreMutation.variables === store.id}
                               data-testid={`button-delete-store-${store.id}`}
                             >
                               <Trash className="w-4 h-4 text-destructive" />
@@ -980,7 +987,7 @@ export default function Configuration() {
                               size="icon" 
                               variant="ghost" 
                               onClick={() => deleteProductMutation.mutate(product.id)}
-                              disabled={deleteProductMutation.isPending}
+                              disabled={deleteProductMutation.isPending && deleteProductMutation.variables === product.id}
                               data-testid={`button-delete-product-${product.id}`}
                             >
                               <Trash className="w-4 h-4 text-destructive" />
