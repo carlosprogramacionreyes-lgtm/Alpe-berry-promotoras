@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Users, Store, MapPin, Package, ListChecks, Shield, Bell, Link as LinkIcon, Edit, Trash } from 'lucide-react';
@@ -142,6 +144,13 @@ export default function Configuration() {
       active: true,
     },
   });
+
+  // Edit state
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingChain, setEditingChain] = useState<Chain | null>(null);
+  const [editingZone, setEditingZone] = useState<Zone | null>(null);
+  const [editingStore, setEditingStore] = useState<StoreType | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Mutations
   const createUserMutation = useMutation({
@@ -287,6 +296,88 @@ export default function Configuration() {
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Error al eliminar producto", variant: "destructive" });
+    },
+  });
+
+  // Update mutations
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof userFormSchema>> }) => {
+      const payload = {
+        ...data,
+        email: data.email && data.email.trim() !== '' ? data.email : undefined,
+      };
+      return await apiRequest('PUT', `/api/users/${id}`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setEditingUser(null);
+      toast({ title: "Usuario actualizado exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar usuario", variant: "destructive" });
+    },
+  });
+
+  const updateChainMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof chainFormSchema>> }) => {
+      return await apiRequest('PUT', `/api/chains/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chains'] });
+      setEditingChain(null);
+      toast({ title: "Cadena actualizada exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar cadena", variant: "destructive" });
+    },
+  });
+
+  const updateZoneMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof zoneFormSchema>> }) => {
+      return await apiRequest('PUT', `/api/zones/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/zones'] });
+      setEditingZone(null);
+      toast({ title: "Zona actualizada exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar zona", variant: "destructive" });
+    },
+  });
+
+  const updateStoreMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof storeFormSchema>> }) => {
+      const payload = {
+        ...data,
+        latitude: data.latitude && data.latitude.trim() !== '' ? data.latitude : undefined,
+        longitude: data.longitude && data.longitude.trim() !== '' ? data.longitude : undefined,
+        address: data.address && data.address.trim() !== '' ? data.address : undefined,
+        city: data.city && data.city.trim() !== '' ? data.city : undefined,
+      };
+      return await apiRequest('PUT', `/api/stores/${id}`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/stores'] });
+      setEditingStore(null);
+      toast({ title: "Tienda actualizada exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar tienda", variant: "destructive" });
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<z.infer<typeof productFormSchema>> }) => {
+      return await apiRequest('PUT', `/api/products/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      setEditingProduct(null);
+      toast({ title: "Producto actualizado exitosamente" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Error al actualizar producto", variant: "destructive" });
     },
   });
 
@@ -469,6 +560,15 @@ export default function Configuration() {
                             <Button 
                               size="icon" 
                               variant="ghost" 
+                              onClick={() => setEditingUser(user)}
+                              data-testid={`button-edit-user-${user.id}`}
+                              className="mr-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
                               onClick={() => deleteUserMutation.mutate(user.id)}
                               disabled={deleteUserMutation.isPending && deleteUserMutation.variables === user.id}
                               data-testid={`button-delete-user-${user.id}`}
@@ -567,6 +667,15 @@ export default function Configuration() {
                             {new Date(chain.createdAt).toLocaleDateString('es-MX')}
                           </td>
                           <td className="py-3 text-right">
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              onClick={() => setEditingChain(chain)}
+                              data-testid={`button-edit-chain-${chain.id}`}
+                              className="mr-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
                             <Button 
                               size="icon" 
                               variant="ghost" 
@@ -695,6 +804,15 @@ export default function Configuration() {
                             <Button 
                               size="icon" 
                               variant="ghost" 
+                              onClick={() => setEditingZone(zone)}
+                              data-testid={`button-edit-zone-${zone.id}`}
+                              className="mr-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
                               onClick={() => deleteZoneMutation.mutate(zone.id)}
                               disabled={deleteZoneMutation.isPending && deleteZoneMutation.variables === zone.id}
                               data-testid={`button-delete-zone-${zone.id}`}
@@ -810,6 +928,34 @@ export default function Configuration() {
                       )}
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={storeForm.control}
+                      name="latitude"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Latitud</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ej: 19.4326" data-testid="input-store-latitude" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={storeForm.control}
+                      name="longitude"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Longitud</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ej: -99.1332" data-testid="input-store-longitude" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <Button type="submit" disabled={createStoreMutation.isPending} data-testid="button-create-store">
                     {createStoreMutation.isPending ? 'Creando...' : 'Crear Tienda'}
                   </Button>
@@ -856,6 +1002,15 @@ export default function Configuration() {
                             </Badge>
                           </td>
                           <td className="py-3 text-right">
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              onClick={() => setEditingStore(store)}
+                              data-testid={`button-edit-store-${store.id}`}
+                              className="mr-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
                             <Button 
                               size="icon" 
                               variant="ghost" 
@@ -990,11 +1145,20 @@ export default function Configuration() {
                             <Button 
                               size="icon" 
                               variant="ghost" 
+                              onClick={() => setEditingProduct(product)}
+                              data-testid={`button-edit-product-${product.id}`}
+                              className="mr-1"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
                               onClick={() => deleteProductMutation.mutate(product.id)}
                               disabled={deleteProductMutation.isPending && deleteProductMutation.variables === product.id}
                               data-testid={`button-delete-product-${product.id}`}
                             >
-                              <Trash className="w-4 h-4 text-destructive" />
+                              <Trash className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>
@@ -1043,6 +1207,447 @@ export default function Configuration() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit User Dialog */}
+      {editingUser && (
+        <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Usuario</DialogTitle>
+              <DialogDescription>Modifica la información del usuario</DialogDescription>
+            </DialogHeader>
+            <Form {...userForm}>
+              <form onSubmit={userForm.handleSubmit((data) => updateUserMutation.mutate({ id: editingUser.id, data }))} className="space-y-4">
+                <FormField
+                  control={userForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre Completo</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingUser.name} data-testid="input-edit-user-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={userForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Usuario</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingUser.username} data-testid="input-edit-user-username" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={userForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email (opcional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingUser.email || ''} data-testid="input-edit-user-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={userForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rol</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingUser.role}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-user-role">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                          <SelectItem value="supervisor">Supervisor</SelectItem>
+                          <SelectItem value="analista">Analista</SelectItem>
+                          <SelectItem value="promotor">Promotor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={userForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nueva Contraseña (dejar vacío para no cambiar)</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} placeholder="••••••" data-testid="input-edit-user-password" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingUser(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateUserMutation.isPending} data-testid="button-save-user">
+                    {updateUserMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Chain Dialog */}
+      {editingChain && (
+        <Dialog open={!!editingChain} onOpenChange={() => setEditingChain(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Cadena</DialogTitle>
+              <DialogDescription>Modifica la información de la cadena</DialogDescription>
+            </DialogHeader>
+            <Form {...chainForm}>
+              <form onSubmit={chainForm.handleSubmit((data) => updateChainMutation.mutate({ id: editingChain.id, data }))} className="space-y-4">
+                <FormField
+                  control={chainForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Cadena</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingChain.name} data-testid="input-edit-chain-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={chainForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descripción</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingChain.description || ''} data-testid="input-edit-chain-description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingChain(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateChainMutation.isPending} data-testid="button-save-chain">
+                    {updateChainMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Zone Dialog */}
+      {editingZone && (
+        <Dialog open={!!editingZone} onOpenChange={() => setEditingZone(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Zona</DialogTitle>
+              <DialogDescription>Modifica la información de la zona</DialogDescription>
+            </DialogHeader>
+            <Form {...zoneForm}>
+              <form onSubmit={zoneForm.handleSubmit((data) => updateZoneMutation.mutate({ id: editingZone.id, data }))} className="space-y-4">
+                <FormField
+                  control={zoneForm.control}
+                  name="chainId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cadena</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingZone.chainId}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-zone-chain">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {chains.map((chain) => (
+                            <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={zoneForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Zona</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingZone.name} data-testid="input-edit-zone-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={zoneForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descripción</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingZone.description || ''} data-testid="input-edit-zone-description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingZone(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateZoneMutation.isPending} data-testid="button-save-zone">
+                    {updateZoneMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Store Dialog */}
+      {editingStore && (
+        <Dialog open={!!editingStore} onOpenChange={() => setEditingStore(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Tienda</DialogTitle>
+              <DialogDescription>Modifica la información de la tienda</DialogDescription>
+            </DialogHeader>
+            <Form {...storeForm}>
+              <form onSubmit={storeForm.handleSubmit((data) => updateStoreMutation.mutate({ id: editingStore.id, data }))} className="space-y-4">
+                <FormField
+                  control={storeForm.control}
+                  name="chainId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cadena</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingStore.chainId}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-store-chain">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {chains.map((chain) => (
+                            <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={storeForm.control}
+                  name="zoneId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zona</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingStore.zoneId}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-store-zone">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {zones.filter(z => z.chainId === storeForm.watch('chainId')).map((zone) => (
+                            <SelectItem key={zone.id} value={zone.id}>{zone.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={storeForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Tienda</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingStore.name} data-testid="input-edit-store-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={storeForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ciudad</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingStore.city || ''} data-testid="input-edit-store-city" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={storeForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dirección</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingStore.address || ''} data-testid="input-edit-store-address" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={storeForm.control}
+                    name="latitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Latitud</FormLabel>
+                        <FormControl>
+                          <Input {...field} defaultValue={editingStore.latitude || ''} placeholder="19.4326" data-testid="input-edit-store-latitude" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={storeForm.control}
+                    name="longitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Longitud</FormLabel>
+                        <FormControl>
+                          <Input {...field} defaultValue={editingStore.longitude || ''} placeholder="-99.1332" data-testid="input-edit-store-longitude" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingStore(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateStoreMutation.isPending} data-testid="button-save-store">
+                    {updateStoreMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Product Dialog */}
+      {editingProduct && (
+        <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Producto</DialogTitle>
+              <DialogDescription>Modifica la información del producto</DialogDescription>
+            </DialogHeader>
+            <Form {...productForm}>
+              <form onSubmit={productForm.handleSubmit((data) => updateProductMutation.mutate({ id: editingProduct.id, data }))} className="space-y-4">
+                <FormField
+                  control={productForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre del Producto</FormLabel>
+                      <FormControl>
+                        <Input {...field} defaultValue={editingProduct.name} data-testid="input-edit-product-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={productForm.control}
+                  name="icon"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ícono</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingProduct.icon}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-product-icon">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="grape">🍇 Uva</SelectItem>
+                          <SelectItem value="strawberry">🍓 Fresa</SelectItem>
+                          <SelectItem value="blueberry">🫐 Arándano</SelectItem>
+                          <SelectItem value="raspberry">🍒 Frambuesa</SelectItem>
+                          <SelectItem value="blackberry">⚫ Mora</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={productForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Color</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={editingProduct.color}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-product-color">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="purple">Morado</SelectItem>
+                          <SelectItem value="red">Rojo</SelectItem>
+                          <SelectItem value="blue">Azul</SelectItem>
+                          <SelectItem value="green">Verde</SelectItem>
+                          <SelectItem value="orange">Naranja</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingProduct(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateProductMutation.isPending} data-testid="button-save-product">
+                    {updateProductMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
