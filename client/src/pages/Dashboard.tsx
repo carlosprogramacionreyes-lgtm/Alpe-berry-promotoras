@@ -72,8 +72,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-1">Bienvenido, {user.user?.name || user.user?.username}</h1>
-          <p className="text-sm text-muted-foreground">{user.user?.role}</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(270,70%,60%)] via-primary to-[hsl(240,70%,55%)] bg-clip-text text-transparent mb-1">Bienvenido, {user.user?.name || user.user?.username}</h1>
+          <p className="text-sm text-muted-foreground capitalize">{user.user?.role}</p>
         </div>
         <div className="text-right">
           <p className="text-sm text-muted-foreground">Hoy</p>
@@ -98,6 +98,7 @@ export default function Dashboard() {
               subtitle="Evaluaciones de hoy"
               icon={MapPin}
               iconColor="text-primary"
+              gradient
             />
             <MetricCard 
               title="Promotores Activos" 

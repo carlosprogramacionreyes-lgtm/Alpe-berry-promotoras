@@ -24,7 +24,13 @@ Preferred communication style: Simple, everyday language.
 - Role-adaptive interface that adjusts based on user permissions (Admin, Supervisor, Analyst, Promoter)
 - Custom theme system supporting light/dark modes with HSL-based color tokens
 - Compact spacing and layout to maximize visible content on mobile devices
-- Gradient accents on key metric displays (purple-blue gradient from hsl(250,84%,54%) to hsl(217,91%,60%))
+- Purple-blue-teal gradient theme:
+  - Primary purple: hsl(265, 80%, 60%)
+  - Gradient purple: hsl(270, 70%, 60%)
+  - Gradient blue: hsl(240, 70%, 55%)
+  - Gradient teal: hsl(180, 60%, 50%)
+- Gradient backgrounds on login page and key metric cards
+- Gradient text effects on titles and headings
 
 **Component Organization**
 - Reusable UI components in `/client/src/components/ui/` (shadcn/ui primitives)

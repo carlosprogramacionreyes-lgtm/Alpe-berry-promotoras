@@ -12,7 +12,7 @@
 ## Color Palette
 
 ### Light Mode
-- **Primary Blue**: 217 91% 60% - Buttons, links, highlights, active states
+- **Primary Purple**: 265 80% 60% - Buttons, links, highlights, active states
 - **Success Green**: 142 71% 45% - Completed evaluations, positive metrics
 - **Destructive Red**: 0 84% 60% - Alerts, errors, critical actions
 - **Background**: 0 0% 100% - Main background
@@ -29,10 +29,15 @@
 - **Text Primary**: 0 0% 98% - Main text
 - **Text Secondary**: 215 20% 65% - Secondary text
 
-### Accent Colors
-- **Purple-Blue Gradient**: Applied to hero cards, key metric displays
-  - From: 250 84% 54%
-  - To: 217 91% 60%
+### Accent Colors & Gradients
+- **Purple-Blue-Teal Gradient**: Applied to login background, hero cards, key metric displays
+  - Purple: 270 70% 60% (left)
+  - Blue: 240 70% 55% (middle)
+  - Teal: 180 60% 50% (right)
+- **Primary Gradient**: Used for titles and special highlights
+  - From: 270 70% 60%
+  - Via: 265 80% 60%
+  - To: 240 70% 55%
 
 ## Typography
 - **Font Family**: System fonts via Tailwind defaults (`font-sans`)

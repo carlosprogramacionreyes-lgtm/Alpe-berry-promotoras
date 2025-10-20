@@ -20,7 +20,7 @@ export default function MetricCard({
 }: MetricCardProps) {
   return (
     <Card 
-      className={`p-4 ${gradient ? 'bg-gradient-to-br from-[hsl(250,84%,54%)] to-primary text-white border-0' : ''}`}
+      className={`p-4 ${gradient ? 'bg-gradient-to-br from-[hsl(270,70%,60%)] via-primary to-[hsl(240,70%,55%)] text-white border-0 shadow-lg' : ''}`}
       data-testid={`card-metric-${title.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <div className="flex items-start justify-between gap-3">
