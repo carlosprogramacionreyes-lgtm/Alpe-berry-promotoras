@@ -165,3 +165,41 @@ export const insertIncidentSchema = createInsertSchema(incidents).omit({
 
 export type InsertIncident = z.infer<typeof insertIncidentSchema>;
 export type Incident = typeof incidents.$inferSelect;
+
+export const backupLogs = pgTable("backup_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  filename: text("filename").notNull(),
+  adminUserId: varchar("admin_user_id").notNull().references(() => users.id),
+  adminUsername: text("admin_username").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertBackupLogSchema = createInsertSchema(backupLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertBackupLog = z.infer<typeof insertBackupLogSchema>;
+export type BackupLog = typeof backupLogs.$inferSelect;
+
+export const promoterVisits = pgTable("promoter_visits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  checkInTime: timestamp("check_in_time").notNull().defaultNow(),
+  checkOutTime: timestamp("check_out_time"),
+  checkInLatitude: decimal("check_in_latitude", { precision: 10, scale: 7 }),
+  checkInLongitude: decimal("check_in_longitude", { precision: 10, scale: 7 }),
+  checkOutLatitude: decimal("check_out_latitude", { precision: 10, scale: 7 }),
+  checkOutLongitude: decimal("check_out_longitude", { precision: 10, scale: 7 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPromoterVisitSchema = createInsertSchema(promoterVisits).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPromoterVisit = z.infer<typeof insertPromoterVisitSchema>;
+export type PromoterVisit = typeof promoterVisits.$inferSelect;
