@@ -6,6 +6,69 @@ Berry Quality Inspector is a field evaluation system designed for berry quality 
 
 ## Recent Changes
 
+### October 2025 - New Visit Workflow Complete Redesign
+
+#### Complete 5-Step Evaluation System
+- **Step 0: Location Validation (Chain → Store Selection)**
+  - Chain selector with visual card grid (HEB, La Comer, Soriana, Walmart)
+  - Store selector with real-time geolocation integration
+  - Automatic GPS location request on page load
+  - Distance calculation using Haversine formula (meters/kilometers)
+  - Status badges: Green "En rango" (≤100m), Red "Fuera de rango" (>100m), Yellow "Sin coordenadas"
+  - Success banner: "Ubicación obtenida correctamente"
+  - Admin bypass: "Continuar (Modo de Prueba)" button for administrators to proceed even when out of range
+  - Geofence radius: 100 meters (configurable)
+
+- **Step 1: Product Selection (Paso 1/4)**
+  - Visual grid of product cards with dynamic colors and icons
+  - Database-driven product list from Configuration → Products
+  - "Iniciar Evaluación" button appears on selected product
+  - Progress indicator: "Paso 1 de 5"
+
+- **Step 2: Availability Form (Paso 2/5)**
+  - Required fields: Stock quantity, Location dropdown, Display condition dropdown
+  - Optional: Area photo URL
+  - Locations: Exhibidor principal, Área refrigerada, Anaquel secundario, Otro
+  - Conditions: Excelente, Bueno, Regular, Malo
+  - Next button enables only when all required fields filled
+
+- **Step 3: Quality Assessment (Paso 3/5)**
+  - Freshness slider (1-5 scale) with live value display
+  - Appearance dropdown, Packaging condition dropdown
+  - Expiration date picker with automatic warning system
+  - Yellow warning banner: "⚠️ Producto próximo a vencer" (if ≤7 days away)
+  - Optional: Temperature, Quality photos (up to 3)
+
+- **Step 4: Prices and Promotions (Paso 4/5)**
+  - Current price and Suggested price inputs
+  - Automatic price variation calculation (percentage difference, color-coded)
+  - Multi-select promotions: 2x1, Descuento %, 3x2, Gratis, Ninguna
+  - Promotion description textarea
+  - Conditional POP Material field: Photo URL appears only when "Material POP presente" checked
+  - Price tag photo upload
+
+- **Step 5: Incidents and Issues (Paso 5/5)**
+  - Multi-select incident checkboxes: Producto vencido, Empaque dañado, Promoción faltante, Competencia agresiva, Precio incorrecto, Sin stock, Otro
+  - Conditional severity/action fields (appear only when incidents selected):
+    - Severity dropdown: Baja, Media, Alta, Crítica (REQUIRED if incidents checked)
+    - Action required textarea (REQUIRED if incidents checked)
+  - Evidence photos (up to 4 URLs)
+  - Detected competition description (optional)
+
+- **Completion Flow:**
+  - "Completar" button submits evaluation to POST /api/evaluations
+  - Success toast: "Evaluación completada y guardada exitosamente"
+  - Automatic navigation back to /visits list view
+  - Cache invalidation triggers query refetch
+
+- **Technical Implementation:**
+  - Geolocation API with error handling
+  - Haversine distance formula: `√((lat2-lat1)² + (lon2-lon1)²) × 111.32 km`
+  - Dynamic form validation per step
+  - Conditional field rendering based on checkbox states
+  - React Query mutations with optimistic updates
+  - Mobile-first responsive design with purple accent color
+
 ### October 2025 - Major System Enhancements (Three-Part Update)
 
 #### 1. Reports and Analytics Module Update
