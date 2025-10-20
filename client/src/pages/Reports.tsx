@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +10,93 @@ import { Badge } from '@/components/ui/badge';
 import StatsCard from '@/components/StatsCard';
 import { BarChart3, Download, CheckCircle, Star, AlertTriangle, DollarSign, Package, PieChart, TrendingUp, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import type { Chain, Zone, Store, Product, User } from '@shared/schema';
 
 export default function Reports() {
-  const [dateRange] = useState('01/10/25 - 31/10/25');
+  const [dateRange, setDateRange] = useState('01/10/25 - 31/10/25');
+  const [selectedChainId, setSelectedChainId] = useState<string>('all');
+  const [selectedZoneId, setSelectedZoneId] = useState<string>('all');
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('all');
+  const [selectedUserId, setSelectedUserId] = useState<string>('all');
+  const [selectedProductId, setSelectedProductId] = useState<string>('all');
+
+  const { data: currentUser } = useQuery<User>({ queryKey: ['/api/user'] });
+  const { data: chains = [] } = useQuery<Chain[]>({ queryKey: ['/api/chains'] });
+  const { data: allZones = [] } = useQuery<Zone[]>({ queryKey: ['/api/zones'] });
+  const { data: allStores = [] } = useQuery<Store[]>({ queryKey: ['/api/stores'] });
+  const { data: products = [] } = useQuery<Product[]>({ queryKey: ['/api/products'] });
+  const { data: users = [] } = useQuery<User[]>({ queryKey: ['/api/users'] });
+
+  const isPromoter = currentUser?.role === 'promoter';
+
+  const filteredZones = selectedChainId === 'all' 
+    ? allZones 
+    : allZones.filter(zone => zone.chainId === selectedChainId);
+
+  const filteredStores = selectedZoneId === 'all'
+    ? (selectedChainId === 'all' ? allStores : allStores.filter(store => {
+        const zone = allZones.find(z => z.id === store.zoneId);
+        return zone?.chainId === selectedChainId;
+      }))
+    : allStores.filter(store => store.zoneId === selectedZoneId);
+
+  useEffect(() => {
+    if (selectedChainId !== 'all') {
+      if (selectedZoneId !== 'all') {
+        const zone = allZones.find(z => z.id === selectedZoneId);
+        if (zone?.chainId !== selectedChainId) {
+          setSelectedZoneId('all');
+        }
+      }
+    }
+  }, [selectedChainId, selectedZoneId, allZones]);
+
+  useEffect(() => {
+    if (selectedZoneId !== 'all') {
+      if (selectedStoreId !== 'all') {
+        const store = allStores.find(s => s.id === selectedStoreId);
+        if (store?.zoneId !== selectedZoneId) {
+          setSelectedStoreId('all');
+        }
+      }
+    } else if (selectedChainId !== 'all') {
+      if (selectedStoreId !== 'all') {
+        const store = allStores.find(s => s.id === selectedStoreId);
+        const zone = allZones.find(z => z.id === store?.zoneId);
+        if (zone?.chainId !== selectedChainId) {
+          setSelectedStoreId('all');
+        }
+      }
+    }
+  }, [selectedZoneId, selectedChainId, selectedStoreId, allStores, allZones]);
+
+  useEffect(() => {
+    if (isPromoter && currentUser) {
+      setSelectedUserId(currentUser.id);
+    }
+  }, [isPromoter, currentUser]);
+
+  const handleApplyFilters = () => {
+    console.log('Filters applied:', {
+      dateRange,
+      chainId: selectedChainId,
+      zoneId: selectedZoneId,
+      storeId: selectedStoreId,
+      userId: selectedUserId,
+      productId: selectedProductId
+    });
+  };
+
+  const handleClearFilters = () => {
+    setDateRange('01/10/25 - 31/10/25');
+    setSelectedChainId('all');
+    setSelectedZoneId('all');
+    setSelectedStoreId('all');
+    if (!isPromoter) {
+      setSelectedUserId('all');
+    }
+    setSelectedProductId('all');
+  };
 
   const productData = [
     { name: 'Espinaca Baby', value: 1, color: 'hsl(142, 71%, 45%)' }
@@ -55,39 +140,124 @@ export default function Reports() {
         <CardHeader>
           <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Rango de Fechas</Label>
-              <Input value={dateRange} readOnly data-testid="input-date-range" />
+              <Input 
+                value={dateRange} 
+                onChange={(e) => setDateRange(e.target.value)}
+                data-testid="input-date-range" 
+              />
             </div>
             <div className="space-y-2">
+              <Label>Cadena</Label>
+              <Select value={selectedChainId} onValueChange={setSelectedChainId}>
+                <SelectTrigger data-testid="select-chain">
+                  <SelectValue placeholder="Seleccionar cadena" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las cadenas</SelectItem>
+                  {chains.map((chain) => (
+                    <SelectItem key={chain.id} value={chain.id}>
+                      {chain.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Zona</Label>
+              <Select 
+                value={selectedZoneId} 
+                onValueChange={setSelectedZoneId}
+                disabled={selectedChainId !== 'all' && filteredZones.length === 0}
+              >
+                <SelectTrigger data-testid="select-zone">
+                  <SelectValue placeholder="Seleccionar zona" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las zonas</SelectItem>
+                  {filteredZones.map((zone) => (
+                    <SelectItem key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
               <Label>Tienda</Label>
-              <Select defaultValue="all">
+              <Select 
+                value={selectedStoreId} 
+                onValueChange={setSelectedStoreId}
+                disabled={filteredStores.length === 0}
+              >
                 <SelectTrigger data-testid="select-store">
-                  <SelectValue />
+                  <SelectValue placeholder="Seleccionar tienda" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las tiendas</SelectItem>
-                  <SelectItem value="store1">comer nor test</SelectItem>
+                  {filteredStores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Usuario</Label>
+              <Select 
+                value={selectedUserId} 
+                onValueChange={setSelectedUserId}
+                disabled={isPromoter}
+              >
+                <SelectTrigger data-testid="select-user">
+                  <SelectValue placeholder="Seleccionar usuario" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los usuarios</SelectItem>
+                  {users.filter(u => u.role === 'promoter').map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.username})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Producto</Label>
-              <Select defaultValue="all">
+              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                 <SelectTrigger data-testid="select-product">
-                  <SelectValue />
+                  <SelectValue placeholder="Seleccionar producto" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los productos</SelectItem>
-                  <SelectItem value="espinaca">Espinaca Baby</SelectItem>
+                  {products.map((product) => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <div className="mt-4">
-            <Button data-testid="button-apply-filters">Aplicar Filtros</Button>
+
+          <div className="flex gap-3">
+            <Button onClick={handleApplyFilters} data-testid="button-apply-filters">
+              Aplicar Filtros
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleClearFilters} 
+              data-testid="button-clear-filters"
+            >
+              Limpiar Filtros
+            </Button>
           </div>
         </CardContent>
       </Card>

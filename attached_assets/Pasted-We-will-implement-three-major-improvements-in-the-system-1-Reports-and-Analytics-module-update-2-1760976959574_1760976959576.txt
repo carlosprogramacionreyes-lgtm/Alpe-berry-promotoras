@@ -1,0 +1,192 @@
+We will implement three major improvements in the system:
+
+1️⃣ Reports and Analytics module update
+2️⃣ Database tab enhancement
+3️⃣ Complete Role and Permission structure
+
+🔹 1. Reports and Analytics Module Update
+
+The current filters only include Date Range, Store, and Product.
+We need to expand them to include Chain, Zone, and User, and reorder them so that Date Range appears first.
+
+🔸 New filter set
+
+1️⃣ Date Range
+
+Should appear first.
+
+Select start and end dates for analysis.
+
+Affects all displayed results.
+
+2️⃣ Chain
+
+Dropdown to select a retail chain.
+
+Updates available zones and stores dynamically.
+
+3️⃣ Zone
+
+Dependent on the selected chain.
+
+Shows all zones if no chain is selected.
+
+Updates stores when selected.
+
+4️⃣ Store
+
+Dependent on the selected zone.
+
+Shows all stores if no zone is selected.
+
+5️⃣ User (Promoter)
+
+Dropdown to select a specific user.
+
+For Analyst, Supervisor, and Administrator → show all users.
+
+For Promoter → locked, showing only their own name.
+
+6️⃣ Product
+
+Keep the existing product filter.
+
+🔸 Recommended visual order
+
+Row 1: Date Range | Chain | Zone
+Row 2: Store | User | Product
+Row 3: Action buttons
+
+Apply Filters (purple style)
+
+Clear / Reset Filters (gray style)
+
+🔸 Expected behavior
+
+Filters must be dependent:
+
+Date Range → applies to all.
+
+Chain → updates Zones.
+
+Zone → updates Stores.
+
+Filters can be freely combined.
+
+If nothing is selected, show all available data.
+
+Results must update dynamically without page reload.
+
+✅ Final goal
+
+The Reports and Analytics module should include all filters in this order:
+Date Range → Chain → Zone → Store → User → Product.
+
+Filters must be dynamic, dependent, and keep the current clean design.
+
+🔹 2. Database Tab Enhancement
+
+The Data Base tab currently allows downloading the database structure and viewing backup logs.
+Let’s add a new section listing all tables and their creation dates.
+
+🔸 New section: “Current Database Tables”
+
+Show a list of all tables in the PostgreSQL schema.
+
+Each row must display:
+
+Table name
+
+Creation date
+
+Retrieve data from pg_catalog.pg_class or equivalent.
+
+🔸 Display format
+
+Use a clean DataTable component below the backup logs.
+
+Columns: 🗂️ Table | 📅 Creation Date
+
+Sort by date (newest first).
+
+Optionally add a “New” label for recently created tables.
+
+Include search/filter by table name.
+
+🔸 Access
+
+Visible only for Administrator or Superadmin roles.
+
+Hidden for Supervisor, Analyst, and Promoter roles.
+
+✅ Final goal
+
+The Data Base tab should include:
+1️⃣ Structure download button (.sql)
+2️⃣ Backup history table (existing)
+3️⃣ A new section listing all database tables with creation dates.
+
+🔹 3. Role and Permission Structure
+
+Implement role-based navigation and permissions.
+
+🟣 Promoter Role
+
+Sidebar: Home, Visits
+
+Home content: Today’s Visits, Monthly Visits, Pending
+
+Quick Actions: New Visit, My Visits
+
+Restrictions:
+
+No access to Configuration, Data Base, or Reports
+
+Cannot edit or delete other users’ data
+
+🟣 Analyst Role
+
+Sidebar: Home, Visits, Reports
+
+Home: consolidated info for all users
+
+Quick Actions: full access
+
+Reports: full read-only access
+
+No access to Data Base
+
+🟣 Supervisor Role
+
+Sidebar: Home, Visits, Reports, Configuration
+
+Home: shows all promoters in their zones/chains
+
+Quick Actions: full access
+
+Reports: full read access
+
+Restrictions:
+
+Cannot delete users
+
+Cannot view Data Base
+
+Can create/edit users, chains, zones, stores, and products
+
+🟣 Administrator Role
+
+Sidebar: Home, Visits, Reports, Configuration, Data Base
+
+Full system access
+
+Can create, edit, delete, and back up data
+
+Quick Actions: full access
+
+✅ Final goal
+
+Navigation, content, and permissions must adapt automatically based on user role.
+
+Progressive access hierarchy:
+Promoter → Analyst → Supervisor → Administrator.
