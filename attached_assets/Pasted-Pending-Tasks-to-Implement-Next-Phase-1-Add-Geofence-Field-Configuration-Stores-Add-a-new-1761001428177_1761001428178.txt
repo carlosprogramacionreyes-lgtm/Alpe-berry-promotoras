@@ -1,0 +1,104 @@
+Pending Tasks to Implement (Next Phase)
+🏬 1. Add Geofence Field (Configuration → Stores)
+
+Add a new numeric field “Geofence radius (meters)” to the store form.
+
+Only Supervisors and Admins can edit this field.
+
+The value defines the GPS validation radius used in the “New Visit” workflow (e.g., 100, 200, 500 meters).
+
+It replaces the current hardcoded 100 m value.
+
+⚙️ 2. Add Evaluations Tab (Configuration → Evaluations)
+
+Create a new tab called “Evaluations” in the Configuration section.
+
+Purpose: Let administrators control which fields appear in each evaluation step and whether they’re required or optional.
+
+The tab must include:
+
+5 subtabs:
+1️⃣ Availability
+2️⃣ Quality
+3️⃣ Prices
+4️⃣ Incidents
+5️⃣ Custom Fields
+
+Each subtab shows a table of fields with:
+
+Step name
+
+Technical name (unique key)
+
+Label (display text)
+
+Field type (text, number, select, checkbox, date, etc.)
+
+Options (JSON format, for select fields)
+
+Required toggle
+
+Order number
+
+Status (Active/Inactive)
+
+CRUD support (Add, Edit, Delete, Activate/Deactivate).
+
+Only Administrators can modify this configuration.
+
+Changing a field here should instantly affect the form shown in “New Visit”.
+
+📷 3. Add Camera Buttons
+
+Add a small 📷 camera icon button in the following fields to allow direct photo capture:
+
+Step 2 (Availability): “Area Photo”
+
+Step 3 (Quality): “Product Photos (up to 3)”
+
+Step 4 (Prices): “Price Tag Photo”
+Each should open the device camera and allow continuing even if no photo is taken (photo optional).
+
+🍓 4. Modernize Product Selection Screen
+
+Update the “Select Product” screen to look modern and visual, similar to the Lovable design.
+
+Each product card must include:
+
+Product icon and color.
+
+Product name.
+
+Label “Berry Fresh.”
+
+Button “Start Evaluation.”
+
+Display cards in a responsive, clean grid layout with proper spacing.
+
+🧭 5. Direct Start on Store Selection
+
+When clicking “New Visit”, the system should go directly to the “Select Store” screen.
+
+The user should not have to choose the chain first.
+
+🎨 6. Global UI & Spacing Optimization
+
+Review the entire project layout for visual consistency and cleanliness.
+
+Adjust spacing, margins, and padding to make the interface cleaner and easier to read.
+
+Ensure proper alignment between components (tables, forms, cards).
+
+Improve responsiveness for mobile and tablet.
+
+Maintain the purple accent color and minimalist design aesthetic.
+
+✅ Expected Final Behavior
+
+Once these tasks are completed:
+
+The New Visit flow will be fully functional, modern, and mobile-optimized.
+
+The Configuration module will have complete control over evaluation fields and geofencing.
+
+The overall UI will look more polished and professional.
