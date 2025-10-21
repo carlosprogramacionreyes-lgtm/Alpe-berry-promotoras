@@ -361,7 +361,7 @@ export default function NewVisitWorkflow({ store, products, onCancel, onComplete
             </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {products.filter(p => p.active).map((product) => {
                 const Icon = getIcon(product.icon);
                 const isSelected = selectedProductId === product.id;

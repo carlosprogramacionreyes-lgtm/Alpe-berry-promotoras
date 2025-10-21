@@ -90,7 +90,7 @@ export default function Dashboard() {
       </div>
 
       {statsLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="p-4">
               <Skeleton className="h-20" />
@@ -99,7 +99,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard 
               title="Visitas Hoy" 
               value={stats?.visitsToday || 0} 
@@ -130,7 +130,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard 
               title="Pendientes" 
               value={stats?.pendingEvaluations || 0} 

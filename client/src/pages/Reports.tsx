@@ -281,7 +281,7 @@ export default function Reports() {
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatsCard label="Total Evaluaciones" value={1} />
             <StatsCard label="Completadas" value={1} subtitle="100.0%" />
             <StatsCard label="Frescura Promedio" value="3.0/5" />
@@ -371,7 +371,7 @@ export default function Reports() {
               <div className="flex items-center justify-between mb-4">
                 <Badge className="bg-primary text-white">1 evaluaciones</Badge>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Frescura Promedio</p>
                   <p className="text-xl font-bold">3.0/5</p>
@@ -461,7 +461,7 @@ export default function Reports() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatsCard label="Incidencias Críticas" value={0} subtitle="Requieren atención inmediata" />
             <StatsCard label="Tasa de Incidencias" value="100.0%" subtitle="Del total de evaluaciones" />
             <StatsCard label="Promedio por Eval" value="2.0" subtitle="Incidencias por evaluación" />

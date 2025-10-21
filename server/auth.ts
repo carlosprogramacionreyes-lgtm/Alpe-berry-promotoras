@@ -74,19 +74,23 @@ export function setupAuth(app: Express) {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user) {
-          return done(null, false, { message: "Usuario o contraseña incorrectos" });
+          return done(null, false, {
+            message: "Usuario o contraseña incorrectos",
+          });
         }
         if (!user.active) {
           return done(null, false, { message: "Usuario desactivado" });
         }
-        
+
         const isValid = await comparePasswords(user.password, password);
         if (!isValid) {
-          return done(null, false, { message: "Usuario o contraseña incorrectos" });
+          return done(null, false, {
+            message: "Usuario o contraseña incorrectos",
+          });
         }
 
         const { password: _, ...userWithoutPassword } = user;
-        return done(null, userWithoutPassword);
+        return done(null, userWithoutPassword as Express.User);
       } catch (err) {
         return done(err);
       }
@@ -102,7 +106,7 @@ export function setupAuth(app: Express) {
       const user = await storage.getUser(id);
       if (user) {
         const { password: _, ...userWithoutPassword } = user;
-        done(null, userWithoutPassword);
+        done(null, userWithoutPassword as Express.User);
       } else {
         done(null, false);
       }

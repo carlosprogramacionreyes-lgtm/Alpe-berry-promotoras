@@ -168,7 +168,7 @@ export default function Visits() {
           </Button>
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {chains.map((chain) => (
             <Card 
               key={chain.id} 
@@ -239,7 +239,7 @@ export default function Visits() {
           </Alert>
         )}
 
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {storesWithDistance.map((store) => (
             <Card 
               key={store.id}
@@ -329,7 +329,7 @@ export default function Visits() {
           <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="Rango de fechas" className="pl-10" data-testid="input-date-filter" />
