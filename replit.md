@@ -8,9 +8,47 @@ Berry Quality Inspector is a mobile-first field evaluation system designed for b
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (October 20, 2025)
+## Recent Changes (October 22, 2025)
 
-### Evaluation Fields Configuration System
+### Authentication System Migration to Bcrypt
+- **Issue Fixed**: Login system was broken due to password hashing mismatch
+- **Root Cause**: Auth code used crypto.scrypt but production database users had bcrypt hashes
+- **Solution**: Migrated authentication system from scrypt to bcrypt
+- **Changes Made**:
+  - Updated `server/auth.ts` to use bcryptjs for password hashing and comparison
+  - `hashPassword()`: Now uses `bcrypt.genSalt(10)` and `bcrypt.hash()`
+  - `comparePasswords()`: Now uses `bcrypt.compare()` for secure password verification
+  - Removed all scrypt-related imports and timing-safe comparison code
+- **Testing**: Verified with local database and E2E browser tests
+- **Status**: ✅ Production-ready, confirmed by architect review
+
+### Database Driver Migration to Standard PostgreSQL
+- **Issue Fixed**: Connection errors when using Hostinger VPS production database
+- **Root Cause**: Used @neondatabase/serverless (WebSocket-based) for non-Neon PostgreSQL server
+- **Solution**: Switched to standard PostgreSQL driver
+- **Changes Made**:
+  - Installed `pg` and `@types/pg` packages
+  - Updated `server/db.ts` to use standard `pg` Pool and `drizzle-orm/node-postgres`
+  - Removed WebSocket dependencies (@neondatabase/serverless, ws, neonConfig)
+  - Added comprehensive documentation for switching between local and production databases
+- **Configuration**: Supports both local Replit database and production Hostinger VPS
+- **Database Switching**: Comment out production check block (lines 18-36) to use local database
+- **Testing**: Successfully tested with local Replit database
+- **Status**: ✅ Ready for production (requires VPS firewall configuration to allow Replit IPs)
+
+### UI Spacing Optimization (October 21, 2025)
+- **Standardized Spacing**: Consistent spacing across all pages for professional appearance
+- **Main Container**: Now uses responsive `p-4 md:p-6` (16px mobile, 24px desktop)
+- **Grid Gaps**: All grids standardized to `gap-4` for visual consistency
+- **Pages Updated**: Dashboard, Visits, Reports, Configuration, NewVisitWorkflow
+- **Standards Established**:
+  - Main Container: `p-4 md:p-6`
+  - Header: `px-4 py-3`
+  - Grids: `gap-4`
+  - Sections: `space-y-6`
+  - Flex elements: `gap-2` or `gap-3`
+
+### Evaluation Fields Configuration System (October 20, 2025)
 - **Feature:** Admin-configurable evaluation field system for customizable workflow forms
 - **Access:** Configuration viewing available to all roles; modification restricted to Admins only
 - **Implementation:**
