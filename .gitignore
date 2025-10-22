@@ -1,6 +1,27 @@
+# Dependencies
 node_modules
+
+# Build outputs
 dist
+build
+*.tar.gz
+
+# Temporary or system files
 .DS_Store
+.env
+.env.local
+.env.development
+.env.production
+
+# Sensitive configuration
 server/public
 vite.config.ts.*
-*.tar.gz
+
+# Environment and PM2 configuration
+ecosystem.config.cjs
+
+# Logs and local environment files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
