@@ -30,11 +30,34 @@ Preferred communication style: Simple, everyday language.
   - Installed `pg` and `@types/pg` packages
   - Updated `server/db.ts` to use standard `pg` Pool and `drizzle-orm/node-postgres`
   - Removed WebSocket dependencies (@neondatabase/serverless, ws, neonConfig)
-  - Added comprehensive documentation for switching between local and production databases
-- **Configuration**: Supports both local Replit database and production Hostinger VPS
-- **Database Switching**: Comment out production check block (lines 18-36) to use local database
+  - Simplified configuration to use `DATABASE_URL` environment variable for all environments
+- **Configuration**: Uses `DATABASE_URL` for both development and production
+  - Development (Replit): Connects to local Replit PostgreSQL
+  - Production (VPS): Connects to localhost PostgreSQL on same server
 - **Testing**: Successfully tested with local Replit database
-- **Status**: ✅ Ready for production (requires VPS firewall configuration to allow Replit IPs)
+- **Status**: ✅ Production-ready
+
+### Production Architecture (VPS)
+- **Co-located Setup**: Application and database run on the same VPS server (5.183.11.150)
+- **Database Location**: `/srv/databases/promotoras`
+- **Security Model**:
+  - PostgreSQL listens only on localhost (127.0.0.1)
+  - Port 5432 blocked externally via UFW firewall
+  - Only ports 22 (SSH), 80 (HTTP), 443 (HTTPS) open to internet
+  - Database accessible only from applications on same server
+- **Connection**: `postgresql://DB_USER:DB_PASSWORD@localhost:5432/promotoras`
+- **Benefits**:
+  - ✅ No external database access needed
+  - ✅ No static IP requirements
+  - ✅ Maximum security (localhost-only)
+  - ✅ Low latency (same server)
+  - ✅ Simple firewall rules
+
+### Frontend Configuration Panel Updates
+- **Database Tab Removed**: The "Configuration → Database" tab has been removed from the frontend
+- **Reason**: Production database runs locally on VPS and is not accessible from browser
+- **Database Access**: All database operations handled exclusively through backend API
+- **Remaining Tabs**: Usuarios, Cadenas, Zonas, Tiendas, Asignaciones, Productos, Evaluaciones, Permisos, Notificaciones
 
 ### UI Spacing Optimization (October 21, 2025)
 - **Standardized Spacing**: Consistent spacing across all pages for professional appearance

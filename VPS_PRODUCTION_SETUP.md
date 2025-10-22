@@ -5,6 +5,27 @@ This guide will help you configure PostgreSQL on your Hostinger VPS (5.183.11.15
 
 ---
 
+## 🔐 **IMPORTANT: Credential Security**
+
+**Before you begin:**
+- Generate strong, unique passwords for database users
+- Never commit real credentials to git repositories
+- Never share database passwords in plain text
+- Use environment variables for all sensitive data
+
+**Generate secure passwords:**
+```bash
+# Generate a random secure password (save this securely!)
+openssl rand -base64 32
+```
+
+**Replace placeholders in this guide:**
+- `your_db_username` → Your chosen database username
+- `your_secure_password_here` → Your generated secure password
+- `your-session-secret` → Random string for sessions (generate with same command)
+
+---
+
 ## 📋 Prerequisites
 
 - SSH access to your VPS: `ssh root@5.183.11.150`
@@ -123,27 +144,27 @@ psql
 -- Create database
 CREATE DATABASE promotoras;
 
--- Create user with password
-CREATE USER alpe_admin WITH PASSWORD 'Cari2230*';
+-- Create user with password (replace with your secure password)
+CREATE USER your_db_username WITH PASSWORD 'your_secure_password_here';
 
 -- Grant all privileges
-GRANT ALL PRIVILEGES ON DATABASE promotoras TO alpe_admin;
+GRANT ALL PRIVILEGES ON DATABASE promotoras TO your_db_username;
 
 -- Grant schema privileges (PostgreSQL 15+)
 \c promotoras
-GRANT ALL ON SCHEMA public TO alpe_admin;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO alpe_admin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO alpe_admin;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO alpe_admin;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO alpe_admin;
+GRANT ALL ON SCHEMA public TO your_db_username;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO your_db_username;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO your_db_username;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO your_db_username;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO your_db_username;
 
 -- Verify connection
 \q
 ```
 
 ```bash
-# Test connection as alpe_admin
-psql -U alpe_admin -d promotoras -h localhost
+# Test connection as your database user
+psql -U your_db_username -d promotoras -h localhost
 
 # If successful, you'll see:
 # promotoras=>
@@ -208,10 +229,10 @@ Status: active
 ```bash
 # From your local machine (NOT the VPS), try to connect:
 # This should FAIL (connection refused/timeout) - which is GOOD!
-psql -U alpe_admin -d promotoras -h 5.183.11.150
+psql -U your_db_username -d promotoras -h 5.183.11.150
 
 # From the VPS itself, this should WORK:
-psql -U alpe_admin -d promotoras -h localhost
+psql -U your_db_username -d promotoras -h localhost
 ```
 
 ---
@@ -239,7 +260,7 @@ nano .env
 
 ```env
 # Database (localhost connection)
-DATABASE_URL=postgresql://alpe_admin:Cari2230*@localhost:5432/promotoras
+DATABASE_URL=postgresql://your_db_username:your_secure_password@localhost:5432/promotoras
 
 # Session secret (keep your existing value or generate new one)
 SESSION_SECRET=your-existing-session-secret-here
@@ -312,7 +333,7 @@ sudo systemctl status postgresql
 pm2 status
 
 # ✅ Database connection works locally
-psql -U alpe_admin -d promotoras -h localhost -c "SELECT version();"
+psql -U your_db_username -d promotoras -h localhost -c "SELECT version();"
 ```
 
 ---
@@ -348,7 +369,7 @@ sudo -u postgres /usr/lib/postgresql/*/bin/postgres -C data_directory
 
 ```bash
 # Test connection manually
-psql -U alpe_admin -d promotoras -h localhost
+psql -U your_db_username -d promotoras -h localhost
 
 # Check application logs
 pm2 logs promotoras

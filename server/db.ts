@@ -5,51 +5,35 @@ import * as schema from "@shared/schema";
 /**
  * Database Configuration
  * 
- * This function determines which database to connect to:
- * 1. Production Database (Hostinger VPS): When production environment variables are set
- * 2. Local Development Database (Replit): When using DATABASE_URL
+ * Production Setup (VPS):
+ * - Application and database run on the SAME VPS server
+ * - Database is accessed via localhost (127.0.0.1)
+ * - No external database access needed or allowed
+ * - Uses DATABASE_URL environment variable
  * 
- * To switch between databases:
- * - For LOCAL testing: Comment out the production check block (lines 18-36)
- * - For PRODUCTION: Ensure DB_HOST_PROD, DB_USER_PROD, DB_PASS_PROD, DB_NAME_PROD are set
+ * Development Setup (Replit):
+ * - Uses local Replit PostgreSQL database
+ * - Also uses DATABASE_URL environment variable
  * 
- * Note: Production requires VPS firewall to allow Replit IP addresses
+ * Environment Variables:
+ * - DATABASE_URL: Connection string for database
+ *   Development: postgresql://user:pass@localhost:5432/repl_db (Replit)
+ *   Production:  postgresql://alpe_admin:password@localhost:5432/promotoras (VPS)
+ * 
+ * - SESSION_SECRET: Secret key for session management
+ * - NODE_ENV: 'development' or 'production'
  */
 function getDatabaseConnectionString(): string {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const hasProductionVars = process.env.DB_HOST_PROD && 
-                            process.env.DB_USER_PROD && 
-                            process.env.DB_PASS_PROD && 
-                            process.env.DB_NAME_PROD;
-
-  // PRODUCTION DATABASE (Hostinger VPS)
-  // To test locally, comment out this entire block (lines 18-36)
-  if (isProduction || hasProductionVars) {
-    const host = process.env.DB_HOST_PROD;
-    const port = process.env.DB_PORT_PROD || '5432';
-    const user = process.env.DB_USER_PROD;
-    const password = process.env.DB_PASS_PROD;
-    const database = process.env.DB_NAME_PROD;
-
-    if (!host || !user || !password || !database) {
-      throw new Error(
-        "Production database configuration incomplete. Required: DB_HOST_PROD, DB_USER_PROD, DB_PASS_PROD, DB_NAME_PROD"
-      );
-    }
-
-    const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}?sslmode=require`;
-    console.log(`[DB] Connecting to PRODUCTION database at ${host}:${port}/${database}`);
-    return connectionString;
-  }
-
-  // LOCAL DEVELOPMENT DATABASE (Replit)
   if (!process.env.DATABASE_URL) {
     throw new Error(
-      "DATABASE_URL must be set. Did you forget to provision a database?"
+      "DATABASE_URL must be set. Please configure your database connection string."
     );
   }
 
-  console.log('[DB] Connecting to LOCAL DEVELOPMENT database');
+  const env = process.env.NODE_ENV || 'development';
+  console.log(`[DB] Environment: ${env}`);
+  console.log(`[DB] Connecting to database via DATABASE_URL`);
+  
   return process.env.DATABASE_URL;
 }
 
