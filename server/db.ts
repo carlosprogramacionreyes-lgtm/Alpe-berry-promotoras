@@ -3,29 +3,32 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
 function getDatabaseConnectionString(): string {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const hasProductionVars = process.env.DB_HOST_PROD && 
-                            process.env.DB_USER_PROD && 
-                            process.env.DB_PASS_PROD && 
-                            process.env.DB_NAME_PROD;
+  // TEMPORARY: Force local database for testing bcrypt login
+  // Comment out production check to use local Replit database
+  
+  // const isProduction = process.env.NODE_ENV === 'production';
+  // const hasProductionVars = process.env.DB_HOST_PROD && 
+  //                           process.env.DB_USER_PROD && 
+  //                           process.env.DB_PASS_PROD && 
+  //                           process.env.DB_NAME_PROD;
 
-  if (isProduction || hasProductionVars) {
-    const host = process.env.DB_HOST_PROD;
-    const port = process.env.DB_PORT_PROD || '5432';
-    const user = process.env.DB_USER_PROD;
-    const password = process.env.DB_PASS_PROD;
-    const database = process.env.DB_NAME_PROD;
+  // if (isProduction || hasProductionVars) {
+  //   const host = process.env.DB_HOST_PROD;
+  //   const port = process.env.DB_PORT_PROD || '5432';
+  //   const user = process.env.DB_USER_PROD;
+  //   const password = process.env.DB_PASS_PROD;
+  //   const database = process.env.DB_NAME_PROD;
 
-    if (!host || !user || !password || !database) {
-      throw new Error(
-        "Production database configuration incomplete. Required: DB_HOST_PROD, DB_USER_PROD, DB_PASS_PROD, DB_NAME_PROD"
-      );
-    }
+  //   if (!host || !user || !password || !database) {
+  //     throw new Error(
+  //       "Production database configuration incomplete. Required: DB_HOST_PROD, DB_USER_PROD, DB_PASS_PROD, DB_NAME_PROD"
+  //     );
+  //   }
 
-    const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}?sslmode=require`;
-    console.log(`[DB] Connecting to PRODUCTION database at ${host}:${port}/${database}`);
-    return connectionString;
-  }
+  //   const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}?sslmode=require`;
+  //   console.log(`[DB] Connecting to PRODUCTION database at ${host}:${port}/${database}`);
+  //   return connectionString;
+  // }
 
   if (!process.env.DATABASE_URL) {
     throw new Error(
@@ -33,7 +36,7 @@ function getDatabaseConnectionString(): string {
     );
   }
 
-  console.log('[DB] Connecting to DEVELOPMENT database');
+  console.log('[DB] Connecting to LOCAL DEVELOPMENT database');
   return process.env.DATABASE_URL;
 }
 
