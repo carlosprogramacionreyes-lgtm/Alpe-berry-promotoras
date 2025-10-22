@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 function getDatabaseConnectionString(): string {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -42,4 +39,4 @@ function getDatabaseConnectionString(): string {
 
 const connectionString = getDatabaseConnectionString();
 export const pool = new Pool({ connectionString });
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });

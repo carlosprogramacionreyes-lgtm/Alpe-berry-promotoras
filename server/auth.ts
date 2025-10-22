@@ -3,31 +3,20 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
+import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import type { User } from "@shared/schema";
 
-const scryptAsync = promisify(scrypt);
-
 export async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
 }
 
 export async function comparePasswords(
   storedPassword: string,
   suppliedPassword: string,
 ): Promise<boolean> {
-  const [hashedPassword, salt] = storedPassword.split(".");
-  const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
-  const suppliedPasswordBuf = (await scryptAsync(
-    suppliedPassword,
-    salt,
-    64,
-  )) as Buffer;
-  return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
+  return bcrypt.compare(suppliedPassword, storedPassword);
 }
 
 declare global {
@@ -72,17 +61,22 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log("[AUTH] Login attempt for user:", username);
         const user = await storage.getUserByUsername(username);
         if (!user) {
+          console.log("[AUTH] User not found:", username);
           return done(null, false, {
             message: "Usuario o contraseña incorrectos",
           });
         }
+        console.log("[AUTH] User found, checking if active:", user.active);
         if (!user.active) {
           return done(null, false, { message: "Usuario desactivado" });
         }
 
+        console.log("[AUTH] Comparing passwords...");
         const isValid = await comparePasswords(user.password, password);
+        console.log("[AUTH] Password valid:", isValid);
         if (!isValid) {
           return done(null, false, {
             message: "Usuario o contraseña incorrectos",
@@ -90,8 +84,10 @@ export function setupAuth(app: Express) {
         }
 
         const { password: _, ...userWithoutPassword } = user;
+        console.log("[AUTH] Login successful for user:", username);
         return done(null, userWithoutPassword as Express.User);
       } catch (err) {
+        console.error("[AUTH] Error during authentication:", err);
         return done(err);
       }
     }),
